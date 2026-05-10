@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Mega Quiz | 133 Savol</title>
+    <style>
+        :root { --primary: #00f2fe; --secondary: #4facfe; --correct: #00ff88; --wrong: #ff4b2b; --bg: #080a10; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; 
+            background-color: var(--bg);
+            background-image: radial-gradient(at 0% 0%, rgba(79, 172, 254, 0.2) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(0, 242, 254, 0.1) 0px, transparent 50%);
+            overflow: hidden;
+        }
+        .container { position: relative; width: 100%; max-width: 600px; padding: 20px; }
+        .quiz-card {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 30px;
+            border-radius: 35px; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            text-align: center; position: relative;
+        }
+        .progress-wrapper { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 30px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--secondary)); box-shadow: 0 0 15px var(--primary); transition: width 0.4s ease; }
+        #q-num { color: var(--primary); font-weight: 700; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 10px; }
+        h2 { color: #fff; font-size: 1.1rem; line-height: 1.5; margin-bottom: 30px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .options-list { display: grid; gap: 12px; }
+        .option { background: rgba(255, 255, 255, 0.05); color: #e0e0e0; padding: 16px 20px; border-radius: 18px; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255, 255, 255, 0.05); text-align: left; font-size: 0.95rem; }
+        .option:hover { background: rgba(255, 255, 255, 0.12); border-color: var(--primary); transform: translateX(8px); }
+        .option.correct { background: var(--correct) !important; color: #000; font-weight: bold; }
+        .option.wrong { background: var(--wrong) !important; color: #fff; animation: shake 0.4s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .score-circle { width: 130px; height: 130px; border: 4px solid var(--primary); border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+        .restart-btn { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #000; border: none; padding: 15px 45px; border-radius: 50px; font-weight: 700; cursor: pointer; margin-top: 30px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="quiz-card">
+        <div class="progress-wrapper"><div class="progress-bar" id="bar"></div></div>
+        <div id="quiz-ui">
+            <div id="q-num">SAVOL 01</div>
+            <h2 id="question-text">Yuklanmoqda...</h2>
+            <div class="options-list" id="options-list"></div>
+        </div>
+        <div id="result-ui" style="display: none;">
+            <h1 style="color: #fff; margin: 0; font-size: 1.5rem;">TEST YAKUNLANDI</h1>
+            <div class="score-circle" id="final-score">0</div>
+            <p id="feedback" style="color: #888; margin-top: 10px;"></p>
+            <button class="restart-btn" onclick="location.reload()">QAYTA BOSHLASH</button>
+        </div>
+    </div>
+</div>
+
+<script>
+ const data = [
+        { q: "1. 1988-yilda Toshkentda nechta OTM mavjud bo’lgan?", a: ["12 ta", "15 ta", "17 ta", "21 ta"], c: 2 },
+        { q: "2. Harakatlar strategiyasi Farmoni qachon chiqdi?", a: ["2016-yil", "2017-yil 7-fevral", "2018-yil", "2019-yil"], c: 1 },
+        { q: "3. 'Nyumont' firmasi qaysi davlatga tegishli?", a: ["AQSH", "Germaniya", "Rossiya", "Kanada"], c: 0 },
+        { q: "4. 'UzDEU avto' qo‘shma korxonasi bitimi qachon tuzilgan?", a: ["1991", "1992", "1993", "1994"], c: 1 },
+        { q: "5. Sh.Mirziyoyev 'Biznes yuritish' reytingi haqida qachon gapirgan?", a: ["2017-2021", "2016", "2015", "2022"], c: 0 },
+        { q: "6. 'SamKochavto' zavodi qachondan ishga tushirildi?", a: ["1997", "1998", "1999", "2000"], c: 2 },
+        { q: "7. GM-Uzbekistan korxonasi nechinchi yil tashkil etildi?", a: ["2005", "2007", "2008", "2010"], c: 2 },
+        { q: "8. 1989-yil 24-mayda etnik nizo qaysi shaharda boshlangan?", a: ["Quvasoy", "Toshloq", "Marg'ilon", "Farg'ona"], c: 0 },
+        { q: "9. 1989-yil 8-iyunda aholi namoyishi o'qqa tutilgan shahar?", a: ["Quvasoy", "Toshloq", "Marg'ilon", "Farg'ona"], c: 1 },
+        { q: "10. Islom Karimov qachon SSR prezidenti etib saylangan?", a: ["1989", "1990-yil 24-mart", "1991", "1992"], c: 1 },
+        { q: "11. Mustaqillik deklaratsiyasi qachon qabul qilingan?", a: ["1990-yil 20-iyun", "1991", "1992", "1989"], c: 0 },
+        { q: "12. Sovet Ittifoqida davlat to'ntarishi qachon sodir bo'lgan?", a: ["1991-19-avgust", "1990", "1992", "1988"], c: 0 },
+        { q: "13. IIV va DXK qachon O'zbekiston tasarrufiga olingan?", a: ["1991-25-avgust", "1990", "1992", "1993"], c: 0 },
+        { q: "14. Korrupsiyaga qarshi eng samarali vosita nima?", a: ["Jazo", "Qonun ustivorligi", "Targ'ibot", "Qamoq"], c: 1 },
+        { q: "15. Lenin maydoniga qachon Mustaqillik maydoni nomi berilgan?", a: ["1991-5-sentyabr", "1990", "1992", "1993"], c: 0 },
+        { q: "16. Qaysi yil 'Faol investitsiyalar va ijtimoiy rivojlanish yili' bo'ldi?", a: ["2017", "2018", "2019", "2020"], c: 2 },
+        { q: "17. O'zbekiston Konstitutsiyasi qachon qabul qilingan?", a: ["1991", "1992-yil 8-dekabr", "1993", "1994"], c: 1 },
+        { q: "18. 1990-1994 yillarda Oliy Kengash nechta deputatdan iborat edi?", a: ["250", "300", "500", "400"], c: 2 },
+        { q: "19. Hozirda O'zbekistonda nechta siyosiy partiya mavjud?", a: ["3", "4", "5", "6"], c: 2 },
+        { q: "20. O'zbekistonda eng keyin tashkil topgan siyosiy partiya?", a: ["Adolat", "Milliy tiklanish", "Ekologiya", "XDP"], c: 2 },
+        { q: "21. Markaziy Osiyo tadqiqotlari xalqaro instituti qayerda?", a: ["Toshkent", "Buxoro", "Samarqand", "Xiva"], c: 2 },
+        { q: "22. Xalqaro shartnomalarni ratifikatsiya qiluvchi organ?", a: ["Prezident", "Vazirlar mahkamasi", "Oliy majlis", "Sud"], c: 2 },
+        { q: "23. O'zbekiston qachondan BMTga a'zo bo'lgan?", a: ["1991", "1992-yil 2-mart", "1993", "1994"], c: 1 },
+        { q: "24. Toshkentda BMT vakolatxonasi qachon ochilgan?", a: ["1991", "1992", "1993-24-oktabr", "1994"], c: 2 },
+        { q: "25. BMTning ta'lim, fan va madaniyat tashkiloti qaysi?", a: ["YuNISEF", "YuNESKO", "JSST", "XMT"], c: 1 },
+        { q: "26. 'Kichik biznes va tadbirkorlik yili' qachon bo'lgan?", a: ["2010", "2011", "2012", "2013"], c: 1 },
+        { q: "27. O'zbekiston parlamenti nechta palatadan iborat?", a: ["1", "2", "3", "4"], c: 1 },
+        { q: "28. Davlat ramzlari to'g'risidagi qonun qachon qabul qilingan?", a: ["1991", "1992", "1993", "1994"], c: 1 }, // To'ldirildi
+        { q: "29. O'zbekiston milliy valyutasi qachon joriy etilgan?", a: ["1993", "1994-yil 1-iyul", "1995", "1996"], c: 1 },
+        { q: "30. Virtual va Xalq qabulxonalari qachondan tashkil etildi?", a: ["2015", "2016-28-dekabr", "2017", "2018"], c: 1 },
+        { q: "31. Prezident saylovi to'g'risidagi qonun qachon qabul qilingan?", a: ["1991-18-noyabr", "1990", "1992", "1993"], c: 0 },
+        { q: "32. Fuqarolar necha yoshdan saylash huquqiga ega?", a: ["16", "18", "21", "25"], c: 1 },
+        { q: "33. Prezidentlikka saylanish uchun yosh chegarasi?", a: ["30", "35", "40", "45"], c: 1 },
+        { q: "34. Prezident necha yil muddatga saylanadi (7 yil)?", a: ["4", "5", "7", "10"], c: 2 },
+        { q: "35. O'zbekiston Liberal-demokratik partiyasi qachon tuzilgan?", a: ["2001", "2002", "2003-15-noyabr", "2004"], c: 2 },
+        { q: "36. Davlat hokimiyati tarmoqlari qaysilar?", a: ["Qonun chiqaruvchi, ijro, sud", "Prezident, Hokimlar", "Vazir, Prokuror", "Sud, Politsiya"], c: 0 },
+        { q: "37. Qonun chiqaruvchi organ qanday nomlanadi?", a: ["Vazirlar mahkamasi", "Oliy majlis", "Sudlar", "Hokimiyat"], c: 1 },
+        { q: "38. Ijro etuvchi hokimiyat qanday nomlanadi?", a: ["Senat", "Oliy majlis", "Vazirlar maxkamasi", "Sud"], c: 2 },
+        { q: "39. O'zbekiston davlat gerbi qachon qabul qilingan?", a: ["1991", "1992-2-iyul", "1993", "1994"], c: 1 },
+        { q: "40. O'zbekistonda Yoshlar ittifoqi qachon tashkil etilgan?", a: ["2016", "2017-30-iyun", "2018", "2019"], c: 1 },
+        { q: "41. O'zbekiston oltin zahiralari bo'yicha dunyoda nechanchi?", a: ["2-o'rin", "4-o'rin", "10-o'rin", "13-o'rin"], c: 2 }, // To'ldirildi
+        { q: "42. Alisher Navoiy tavalludining 550 yilligi qachon?", a: ["1990", "1991", "1992", "1993"], c: 1 },
+        { q: "43. Allomalar tavalludi qaysi tashkilot bilan hamkorlikda nishonlanadi?", a: ["BMT", "YuNESKO", "SHHT", "MDH"], c: 1 },
+        { q: "44. 1996-yilda qaysi sarkardaning 660 yilligi nishonlangan?", a: ["Manguberdi", "Amir Temur", "Bobur", "Ulug'bek"], c: 1 },
+        { q: "45. O'zbekiston madhiyasi qachon qabul qilingan?", a: ["1992-10-dekabr", "1991", "1990", "1993"], c: 0 },
+        { q: "46. Kadrlar tayyorlash milliy dasturi qachon qabul qilingan?", a: ["1996", "1997-29-avgust", "1998", "1999"], c: 1 },
+        { q: "47. Qoraqalpog'iston Konstitutsiyasi qachon qabul qilingan?", a: ["1992", "1993-9-aprel", "1994", "1995"], c: 1 },
+        { q: "48. Toshkentda Islom universiteti qachon ochilgan?", a: ["1998", "1999-4-sentabr", "2000", "2001"], c: 1 },
+        { q: "49. O'zbekistonda nechta millat vakillari yashaydi?", a: ["100", "110", "130", "150"], c: 2 },
+        { q: "50. Saylovlarni tashkil etuvchi doimiy organ?", a: ["Hokimiyat", "Markaziy saylov kom", "Prokuratura", "Sud"], c: 1 },
+        { q: "51. Kadrlar tayyorlash dasturining 1-bosqichi yillari?", a: ["1997-2001", "2001-2005", "2005-2010", "1991-1997"], c: 0 },
+        { q: "52. Davlat madhiyasi musiqasini kim bastalagan?", a: ["A. Oripov", "Mutal Burxonov", "S. Boboyev", "D. Zokirov"], c: 1 },
+        { q: "53. O'zbek tiliga davlat tili maqomi qachon berilgan?", a: ["1989-21-oktabr", "1990", "1991", "1992"], c: 0 },
+        { q: "54. Harakatlar strategiyasining 3-yo'nalishi nima?", a: ["Sud", "Ijtimoiy", "Iqtisodiyotni rivojlantirish", "Xavfsizlik"], c: 2 },
+        { q: "55. O'zbekistonning birinchi prezidenti kim?", a: ["Sh.Mirziyoyev", "Islom Karimov", "Sh.Rashidov", "U.Yusupov"], c: 1 },
+        { q: "56. Mustaqillik referendumi qachon o'tkazilgan?", a: ["1991-29-dekabr", "1992", "1990", "1993"], c: 0 },
+        { q: "57. Harakatlar strategiyasining 5-yo'nalishi nima?", a: ["Iqtisodiyot", "Sud", "Xavfsizlik va dinlararo totuvlik", "Ijtimoiy"], c: 2 }, // To'ldirildi
+        { q: "58. MDH qachon tashkil etilgan?", a: ["1991-8-dekabr", "1992", "1990", "1993"], c: 0 },
+        { q: "59. Markaziy Osiyo hamdo'stligi qachon tashkil etilgan?", a: ["2001", "2002-yanvar Toshkent", "2003", "2004"], c: 1 },
+        { q: "60. Prezident vakolati 5 dan 7 yilga qachon uzaytirilgan?", a: ["2001", "2002-27-yanvar", "2003", "2005"], c: 1 },
+        { q: "61. O'zbekistonda Bosh vazir lavozimi qachon joriy etilgan?", a: ["1990-1-noyabr", "1991", "1992", "1989"], c: 0 },
+        { q: "62. Shavkat Mirziyoyev BMTning nechanchi sessiyasida qatnashgan?", a: ["70-", "71-", "72-", "73-"], c: 2 },
+        { q: "63. Ikki palatali parlament tizimi qachon joriy etilgan?", a: ["2000", "2002-27-yanvar", "2004", "2006"], c: 1 },
+        { q: "64. Hokimlar kim tomonidan tayinlanadi?", a: ["Xalq", "Deputatlar", "Prezident", "Vazir"], c: 2 },
+        { q: "65. Hokim qarorlari qaysi kengash tomonidan tasdiqlanadi?", a: ["Xalq deputat kengashi", "Vazirlar mahkamasi", "Oliy majlis", "Sud"], c: 0 },
+        { q: "66. O'zbekistonda uyg'urlar qanday bayramni nishonlaydi?", a: ["Navro'z", "Qurbon hayiti", "Ro'za hayiti", "Barchasi"], c: 3 }, // To'ldirildi
+        { q: "67. O'zbekistonda xitoylar qanday bayramni nishonlaydi?", a: ["Navro'z", "Chunjie", "Hait", "Pashxa"], c: 1 },
+        { q: "68. O'zbekiston YuNESKOga qachon a'zo bo'lgan?", a: ["1992", "1993-26-oktabr", "1994", "1991"], c: 1 },
+        { q: "69. Islom Karimov qachon vafot etgan?", a: ["2016-2-sentabr", "2016-31-avgust", "2016-1-sentabr", "2015"], c: 0 },
+        { q: "70. Islom Karimov 80 yilligi haqidagi qaror qachon chiqdi?", a: ["2016", "2017-27-noyabr", "2018", "2019"], c: 1 },
+        { q: "71. Qaysi shaharda Islom Karimov haykali o'rnatilmagan?", a: ["Toshkent", "Samarqand", "Buxoro", "Qarshi"], c: 2 }, // To'ldirildi
+        { q: "72. 'O'zbek modeli' nechta tamoyildan iborat?", a: ["3", "4", "5", "6"], c: 2 },
+        { q: "73. Xususiylashtirish to'g'risidagi qonun qachon chiqqan?", a: ["1990", "1991-19-noyabr", "1992", "1993"], c: 1 },
+        { q: "74. Davlat mulkini boshqarish qo'mitasi qachon tashkil etilgan?", a: ["1991", "1992-10-fevral", "1993", "1994"], c: 1 },
+        { q: "75. Ushbu qo'mita nomi qachon o'zgartirilgan?", a: ["1993", "1994-7-fevral", "1995", "1996"], c: 1 },
+        { q: "76. Ommaviy xususiylashtirish yillari?", a: ["1991-1992", "1994-1995", "1996-1997", "2000-2001"], c: 1 },
+        { q: "77. O'zbekiston rubl zonasida qaysi yillargacha bo'lgan?", a: ["1991-1992", "1991-1993", "1994-1995", "1990"], c: 1 },
+        { q: "78. So'm-kupon qachon joriy etilgan?", a: ["1992", "1993-15-noyabr", "1994", "1991"], c: 1 },
+        { q: "79. 200 so'mlik banknot qachon chiqarilgan?", a: ["1996", "1997-1-mart", "1998", "1999"], c: 1 },
+        { q: "80. 500 so'mlik banknot qachon chiqarilgan?", a: ["1998", "1999-1-iyul", "2000", "2001"], c: 1 },
+        { q: "81. Deputatlikka saylanish yoshi nechchi?", a: ["18", "21", "25", "30"], c: 2 },
+        { q: "82. Viloyat kengashlariga nechta deputat saylanadi?", a: ["40", "50", "60", "70"], c: 2 },
+        { q: "83. Deputatlar necha yil muddatga saylanadi?", a: ["4", "5", "7", "10"], c: 1 },
+        { q: "84. 'Fuqarolarning o'zini o'zi boshqarish organlari' qonuni yili?", a: ["1991", "1992", "1993", "1994"], c: 2 },
+        { q: "85. Fuqarolar yig'ini raisi saylovi haqidagi qonun qachon?", a: ["2002", "2003", "2004-29-aprel", "2005"], c: 2 },
+        { q: "86. Referendum va Prezident saylovi qonuni qachon?", a: ["1991-18-noyabr", "1990", "1992", "1993"], c: 0 },
+        { q: "87. MSK qachon doimiy organ bo'lgan?", a: ["1996", "1997", "1998-30-aprel", "1999"], c: 2 },
+        { q: "88. Vatan taraqqiyoti partiyasi qachon tuzilgan?", a: ["1991", "1992-may", "1993", "1994"], c: 1 },
+        { q: "89. Adolat SDP qachon tashkil etilgan?", a: ["1994", "1995-18-fevral", "1996", "1997"], c: 1 },
+        { q: "90. Kichik biznesni qo'llab-quvvatlash fondi nomi?", a: ["Madad", "Tadbirkor", "Nur", "Kredit"], c: 0 },
+        { q: "91. Tadbirkorlar palatasi qachon tashkil etilgan?", a: ["2002", "2003", "2004", "2005"], c: 2 },
+        { q: "92. Asakada qaysi zavod qurilgan?", a: ["SamKochAvto", "UzAuto motors", "MAN", "Isuzu"], c: 1 },
+        { q: "93. SamKochAvto qachon ishga tushgan?", a: ["1998", "1999-16-mart", "2000", "2001"], c: 1 },
+        { q: "94. GM Uzbekistan qachon tashkil etilgan?", a: ["2005", "2007", "2008", "2010"], c: 2 },
+        { q: "95. Chevrolet Malibu qachon ishlab chiqarila boshlangan?", a: ["2010", "2011", "2012", "2013"], c: 2 },
+        { q: "96. O'zbekistonda iqtisodiy o'sish qachondan boshlangan?", a: ["1991", "1994", "1996-1997", "2000"], c: 2 },
+        { q: "97. 2012-yilda qancha don yetishtirilgan?", a: ["5 mln", "6 mln", "7 Million 510 ming", "8 mln"], c: 2 },
+        { q: "98. 2017-yilda aholining necha foizi shaharlarda yashagan?", a: ["45.5", "50.6", "52.3", "48.9"], c: 1 },
+        { q: "99. 3 mln.dan ortiq aholi yashaydigan hududlar nechta?", a: ["4", "5", "6", "7"], c: 2 },
+        { q: "100. Markaziy Osiyo aholisining nechchi qismi O'zbekistonda yashaydi?", a: ["30%", "35%", "45%", "50%"], c: 2 },
+        { q: "101. 1-sinflarga bepul darsliklar qachondan berila boshlangan?", a: ["1995", "1996", "1997", "1998"], c: 2 },
+        { q: "102. 2005-yil qanday yil bo'lgan?", a: ["Oila", "Sihat salomatlik", "Yoshlar", "Homiylar"], c: 1 },
+        { q: "103. 2007-yil qanday yil deb e'lon qilingan?", a: ["Oila", "Sihat-salomatlik", "Ijtimoiy himoya", "Homiylar"], c: 2 },
+        { q: "104. Navro'z qachondan umumxalq bayramiga aylangan?", a: ["1989", "1990", "1991", "1992"], c: 1 },
+        { q: "105. Ro'za hayitini dam olish kuni qilish farmoni qachon?", a: ["1991", "1992-27-mart", "1993", "1990"], c: 1 },
+        { q: "106. Qur'onni o'zbekchaga birinchi kim tarjima qilgan?", a: ["Alouddin Mansur", "Abdulaziz Mansur", "M.Sodiq", "M.Yusuf"], c: 0 },
+        { q: "107. Qatag'on qurbonlari kuni qachondan nishonlanadi?", a: ["2000", "2001", "2002", "1999"], c: 1 },
+        { q: "108. 9-may qachondan Xotira va qadrlash kuni bo'lgan?", a: ["1991", "1999", "2000", "1995"], c: 1 },
+        { q: "109. 2007-yilda qaysi shaharning 2750 yilligi nishonlangan?", a: ["Xiva", "Buxoro", "Samarqand", "Termiz"], c: 2 },
+        { q: "110. 2007-yilda qaysi shaharning 2000 yilligi nishonlangan?", a: ["Quva", "Marg`ilon", "Farg'ona", "Namangan"], c: 1 },
+        { q: "111. 2002-yilda qaysi shaharning 2500 yilligi nishonlangan?", a: ["Xiva", "Termiz", "Buxoro", "Samarqand"], c: 1 },
+        { q: "112. 2009-yilda qaysi shahar yubileyi nishonlangan?", a: ["Samarqand", "Toshkent", "Marg'ilon", "Xiva"], c: 1 },
+        { q: "113. Xorazmda qo'g'irchoq teatrlari qachon ochilgan?", a: ["1991", "1992", "1993", "1994"], c: 2 },
+        { q: "114. 2015-yilda qaysi teatr rekonstruksiya qilingan?", a: ["Hamza", "A. Navoiy", "Muqimiy", "Turkiston"], c: 1 },
+        { q: "115. Turkiston saroyi qachon ish boshlagan?", a: ["1991", "1992", "1993", "1994"], c: 2 },
+        { q: "116. 'O'zbekiston' forumlar saroyi qachon ish boshlagan?", a: ["2005", "2007", "2009", "2010"], c: 2 },
+        { q: "117. 'Sharq taronalari' festivali qayerda o'tkaziladi?", a: ["Toshkent", "Buxoro", "Samarqand", "Xiva"], c: 2 },
+        { q: "118. Shashmaqom qachon YuNESKO ro'yxatiga kiritilgan?", a: ["2000", "2003", "2005", "2008"], c: 1 },
+        { q: "119. Bag'rikenglik deklaratsiyasi qaysi tashkilotniki?", a: ["BMT", "YuNESKO", "SHHT", "MDH"], c: 1 },
+        { q: "120. Orol jamg'armasi qachon va qayerda tuzilgan?", a: ["1992", "1993-4-janvar Qizilo`rda", "1994", "1995"], c: 1 },
+        { q: "121. O'zbekiston Yevropa Ittifoqi bilan hamkorlikni qachon boshlagan?", a: ["1994", "1995", "1996", "1997"], c: 2 },
+        { q: "122. Qarshi shahrining yubileyi necha yil?", a: ["2000", "2500", "2700", "3000"], c: 2 },
+        { q: "123. O'zbek palovi qachon YuNESKO ro'yxatiga kiritilgan?", a: ["2014", "2015", "2016", "2017"], c: 2 },
+        { q: "124. Shayx Abdulaziz Mansur tarjimasi qachon chop etilgan?", a: ["2002", "2003", "2004", "2005"], c: 2 },
+        { q: "125. Haj kvotasi qachon oshirilgan?", a: ["2015", "2016", "2017", "2018"], c: 2 },
+        { q: "126. 2002-yilda qaysi shaharning 2700 yilligi nishonlangan?", a: ["Samarqand", "Buxoro", "Termiz va Shahrisabz", "Xiva"], c: 2 },
+        { q: "127. Toshkentning yubileyi qachon nishonlangan?", a: ["2005", "2007", "2009", "2010"], c: 2 },
+        { q: "128. Farg'onada qo'g'irchoq teatri qachon ochilgan?", a: ["1991", "1992", "1993", "1994"], c: 2 },
+        { q: "129. O'zbekistonda teleradio nechta tilda efirga uzatiladi?", a: ["8", "10", "12", "15"], c: 2 },
+        { q: "130. 'Baynalmilal' so'zi qaysi tildan olingan?", a: ["Forscha", "Arabcha", "Ruscha", "Turkiy"], c: 1 },
+        { q: "131. 1989-yilda o'zbek tiliga qanday maqom berilgan?", a: ["Xalqaro", "Davlat tili", "Milliy", "Diniy"], c: 1 },
+        { q: "132. O'zbekistonning mustaqillik kuni?", a: ["21-oktabr", "1-sentabr", "8-dekabr", "2-iyul"], c: 1 },
+        { q: "133. Konstitutsiyaning nechanchi moddasida saylov huquqi bor?", a: ["117", "90", "32", "55"], c: 0 }
+    ];
+    let current = 0; let score = 0;
+    function render() {
+        const q = data[current];
+        document.getElementById("q-num").innerText = `SAVOL ${current + 1}/${data.length}`;
+        document.getElementById("question-text").innerText = q.q;
+        document.getElementById("bar").style.width = `${((current) / data.length) * 100}%`;
+        const list = document.getElementById("options-list");
+        list.innerHTML = ""; 
+        q.a.forEach((opt, i) => {
+            const div = document.createElement("div");
+            div.className = "option";
+            div.innerText = opt;
+            div.onclick = () => handleSelect(i, div);
+            list.appendChild(div);
+        });
+    }
+    function handleSelect(idx, el) {
+        const correct = data[current].c;
+        const all = document.querySelectorAll('.option');
+        all.forEach(o => o.style.pointerEvents = 'none');
+        if(idx === correct) { score++; el.classList.add("correct"); }
+        else { el.classList.add("wrong"); all[correct].classList.add("correct"); }
+        setTimeout(() => {
+            current++;
+            if(current < data.length) render();
+            else showResult();
+        }, 1000);
+    }
+    function showResult() {
+        document.getElementById("quiz-ui").style.display = "none";
+        document.getElementById("bar").style.width = "100%";
+        document.getElementById("result-ui").style.display = "block";
+        document.getElementById("final-score").innerText = `${score}/${data.length}`;
+        document.getElementById("feedback").innerText = score > (data.length / 2) ? "ZUKKO BILIMDON!" : "YANA O'QING!";
+    }
+    render();
+</script>
+</body>
+</html>
