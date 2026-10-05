@@ -3,20 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ibrat Akademiya — Onlayn Ta'lim</title>
+    <title> Akademiya — Onlayn Ta'lim</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" type="image/x-icon">
     <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- ===== ZAXIRA XOTIRA ===== -->
     <script>
         function lsGet(k){ try { return JSON.parse(localStorage.getItem('lms_'+k)); } catch(e){ return null; } }
         window.courses  = lsGet('courses') || [];
         window.users    = lsGet('users') || {};
-        window.enrolls  = lsGet('enrolls') || {};
-        window.config   = Object.assign({ adminUser:'admin', adminPass:'123', academyName:'IBRAT Akademiya' }, lsGet('config')||{});
+        window.config   = Object.assign({ adminUser:'admin', adminPass:'123', academyName:'IBRAT Akademiya', payCard:'' }, lsGet('config')||{});
         window.currentUser = null;
         window.cloudStatus = 'yuklanmoqda';
 
@@ -24,18 +22,15 @@
             try {
                 localStorage.setItem('lms_courses', JSON.stringify(window.courses||[]));
                 localStorage.setItem('lms_users', JSON.stringify(window.users||{}));
-                localStorage.setItem('lms_enrolls', JSON.stringify(window.enrolls||{}));
                 localStorage.setItem('lms_config', JSON.stringify(window.config||{}));
             } catch(e){}
         };
         window.saveLocal();
-        window.saveCourses  = window.saveCourses  || function(){ window.saveLocal(); };
-        window.saveUsers    = window.saveUsers    || function(){ window.saveLocal(); };
-        window.saveEnrolls  = window.saveEnrolls  || function(){ window.saveLocal(); };
+        window.saveCourses   = window.saveCourses   || function(){ window.saveLocal(); };
+        window.saveUsers     = window.saveUsers     || function(){ window.saveLocal(); };
         window.saveConfigLMS = window.saveConfigLMS || function(){ window.saveLocal(); };
     </script>
 
-    <!-- ===== FIREBASE ===== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -71,15 +66,6 @@
                 const local = lsGet('users');
                 if (bor(local)) { window.users = local; set(ref(db,'lms/users'), local).catch(()=>{}); }
             }
-            if (typeof renderCurrent === 'function') renderCurrent();
-        });
-        onValue(ref(db, 'lms/enrolls'), (s) => {
-            const cloud = s.val();
-            if (bor(cloud)) window.enrolls = cloud;
-            else {
-                const local = lsGet('enrolls');
-                if (bor(local)) { window.enrolls = local; set(ref(db,'lms/enrolls'), local).catch(()=>{}); }
-            }
         });
         onValue(ref(db, 'lms/config'), (s) => {
             const v = s.val();
@@ -91,9 +77,8 @@
             if (xatoBor) return; xatoBor = true;
             if (typeof toast === 'function') toast("ℹ️ Bulutga ulanmadi — ma'lumotlar shu qurilmada saqlanadi.", 'warn');
         }
-        window.saveCourses = () => { window.saveLocal(); set(ref(db,'lms/courses'), window.courses).catch(xatoToast); };
-        window.saveUsers   = () => { window.saveLocal(); set(ref(db,'lms/users'), window.users).catch(xatoToast); };
-        window.saveEnrolls = () => { window.saveLocal(); set(ref(db,'lms/enrolls'), window.enrolls).catch(xatoToast); };
+        window.saveCourses   = () => { window.saveLocal(); set(ref(db,'lms/courses'), window.courses).catch(xatoToast); };
+        window.saveUsers     = () => { window.saveLocal(); set(ref(db,'lms/users'), window.users).catch(xatoToast); };
         window.saveConfigLMS = () => { window.saveLocal(); set(ref(db,'lms/config'), window.config).catch(xatoToast); };
     </script>
 
@@ -116,7 +101,6 @@
         .btn-outline { background:var(--card); border:1px solid var(--border); color:var(--text); }
         .btn-success { background:var(--success); color:#fff; }
         .btn-danger { background:var(--danger); color:#fff; }
-        .btn-warn { background:var(--warn); color:#fff; }
         .tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
         .tab-btn { padding:11px 16px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); font-weight:700; cursor:pointer; font-family:inherit; font-size:13px; }
         .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
@@ -130,7 +114,7 @@
         .course-body p { margin:0 0 10px; font-size:12px; color:var(--sub); }
         .price-tag { font-weight:800; color:var(--primary); font-size:14px; }
         .filter-row { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
-        .filter-row select { width:auto; margin:0; min-width:150px; flex:1; }
+        .filter-row select { width:auto; margin:0; min-width:140px; flex:1; }
         .lesson-row { display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 16px; margin-bottom:8px; flex-wrap:wrap; }
         .lesson-row.done { border-color:var(--success); }
         .quiz-opt { display:block; background:var(--bg); border:2px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px; cursor:pointer; font-family:inherit; font-size:14px; text-align:left; width:100%; transition:.2s; }
@@ -156,20 +140,16 @@
         .week-card { background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-bottom:10px; }
         .form-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
         .form-row input, .form-row select { margin:0; flex:1; min-width:120px; }
-        .auth-logo { font-size:52px; }
-        .auth-box { max-width:420px; margin:0 auto; }
-        .lang-chip { cursor:pointer; }
-        .lang-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .seed-ok { border-color:var(--success) !important; }
     </style>
 </head>
 <body>
 
-    <!-- ===== KIRISH ===== -->
     <div id="auth-overlay">
-        <div class="card auth-box" style="text-align:center;">
-            <div class="auth-logo">🎓</div>
+        <div class="card" style="text-align:center;">
+            <div style="font-size:52px;">🎓</div>
             <h2 style="margin:8px 0 4px;" id="auth-title">IBRAT Akademiya</h2>
-            <p style="color:var(--sub); font-size:13px; margin:0 0 6px;">Hamma fan va tillar — bitta joyda o'qing!</p>
+            <p style="color:var(--sub); font-size:13px; margin:0 0 6px;">Hamma fan va tillar — bitta joyda!</p>
             <div id="auth-sync" style="font-size:11px; color:var(--sub); margin-bottom:14px;">☁️ Ulanmoqda...</div>
 
             <div id="login-form">
@@ -191,7 +171,6 @@
         </div>
     </div>
 
-    <!-- ===== ASOSIY ===== -->
     <div id="main-content" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
             <h1 style="margin:0;">🎓 <span id="acad-title">IBRAT Akademiya</span></h1>
@@ -207,24 +186,17 @@
             <button class="tab-btn active" id="tb-kurslar" onclick="switchTab('kurslar')">📚 Kurslar</button>
             <button class="tab-btn" id="tb-mening" onclick="switchTab('mening')">🎓 Mening kurslarim</button>
             <button class="tab-btn admin-only" id="tb-boshqaruv" onclick="switchTab('boshqaruv')">⚙️ Boshqaruv</button>
-            <button class="tab-btn admin-only" id="tb-darslar" onclick="switchTab('darslar')">🎬 Darslar</button>
-            <button class="tab-btn admin-only" id="tb-testlar" onclick="switchTab('testlar')">🧠 Testlar</button>
+            <button class="tab-btn admin-only" id="tb-darslar" onclick="switchTab('darslar')">🎬 Darslar va video</button>
             <button class="tab-btn admin-only" id="tb-oquvchi" onclick="switchTab('oquvchi')">👥 O'quvchilar</button>
         </div>
 
         <!-- KURSLAR -->
         <div id="tab-kurslar" class="tab-page">
             <div class="filter-row">
-                <select id="f-cat" onchange="renderCatalog()">
-                    <option value="">📂 Barcha fanlar</option>
-                </select>
-                <select id="f-lang" onchange="renderCatalog()">
-                    <option value="">🌐 Barcha tillar</option>
-                </select>
+                <select id="f-cat" onchange="renderCatalog()"><option value="">📂 Barcha fanlar</option></select>
+                <select id="f-lang" onchange="renderCatalog()"><option value="">🌐 Barcha tillar</option></select>
                 <select id="f-price" onchange="renderCatalog()">
-                    <option value="">💰 Barchasi</option>
-                    <option value="free">Bepul</option>
-                    <option value="paid">Pullik</option>
+                    <option value="">💰 Barchasi</option><option value="free">Bepul</option><option value="paid">Pullik</option>
                 </select>
                 <input type="text" id="f-search" placeholder="🔍 Qidirish..." oninput="renderCatalog()" style="margin:0; flex:2; min-width:130px;">
             </div>
@@ -236,108 +208,78 @@
             <div id="my-courses" class="grid"></div>
         </div>
 
-        <!-- BOSHQARUV (ADMIN) -->
+        <!-- BOSHQARUV -->
         <div id="tab-boshqaruv" class="tab-page" style="display:none;">
             <div class="stat-grid">
                 <div class="stat-card"><span>📚 Kurslar</span><h2 id="st-courses" style="color:var(--primary)">0</h2></div>
                 <div class="stat-card"><span>🎬 Darslar</span><h2 id="st-lessons">0</h2></div>
                 <div class="stat-card"><span>👥 O'quvchilar</span><h2 id="st-users">0</h2></div>
-                <div class="stat-card"><span>💰 Umumiy tushum</span><h2 id="st-revenue" style="color:var(--success)">0</h2></div>
+                <div class="stat-card"><span>💰 Tushum</span><h2 id="st-revenue" style="color:var(--success)">0</h2></div>
             </div>
 
-            <div class="card" style="max-width:100%; margin-bottom:20px;">
-                <h3 style="margin-top:0;">➕ Yangi kurs qo'shish</h3>
+            <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
+                <h3 style="margin-top:0;">📥 Tayyor kurslar paketi (10 fan — bir bosishda!)</h3>
+                <p style="font-size:13px; color:var(--sub); margin:0 0 10px;">
+                    10 ta fan kursi: darslar nomlari, haftalik reja va test savollari bilan. Faqat videolarni keyin «🎬 Darslar»da joylaysiz.
+                </p>
+                <button class="btn btn-success" onclick="seedInstall()">📥 Paketni yuklash</button>
+                <span id="seed-status" style="margin-left:10px;"></span>
+            </div>
+
+            <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
+                <h3 style="margin-top:0;">➕ Yangi kurs (qo'lda)</h3>
                 <div class="form-row">
-                    <input id="c-title" placeholder="Kurs nomi (masalan: Ingliz tili — 0 dan)">
+                    <input id="c-title" placeholder="Kurs nomi">
                     <select id="c-cat">
                         <option>📐 Matematika</option><option>🇬🇧 Ingliz tili</option><option>🇺🇿 Ona tili</option>
                         <option>💻 Dasturlash</option><option>🧪 Fizika</option><option>🧬 Biologiya</option>
                         <option>⚗️ Kimyo</option><option>🌍 Tarix</option><option>🗺 Geografiya</option>
-                        <option>🇷🇺 Rus tili</option><option>🇩🇪 Nemis tili</option><option>🇹🇷 Turk tili</option>
-                        <option>🎨 San'at</option><option>📖 Boshqa</option>
+                        <option>🇷🇺 Rus tili</option><option>📖 Boshqa</option>
                     </select>
                     <select id="c-lang">
-                        <option>🇺🇿 O'zbek</option><option>🇷🇺 Rus</option><option>🇬🇧 Ingliz</option>
-                        <option>🇹🇷 Turk</option><option>🇩🇪 Nemis</option>
+                        <option>🇺🇿 O'zbek</option><option>🇷🇺 Rus</option><option>🇬🇧 Ingliz</option><option>🇹🇷 Turk</option>
                     </select>
                 </div>
                 <div class="form-row">
-                    <input id="c-desc" placeholder="Qisqa tavsif" style="flex:2;">
+                    <input id="c-desc" placeholder="Tavsif" style="flex:2;">
                     <input id="c-price" type="number" placeholder="Narx (0=bepul)">
-                    <input id="c-weeks" type="number" placeholder="Necha haftalik" min="1" value="4">
+                    <input id="c-emoji" placeholder="Emoji" value="📐">
                 </div>
-                <div class="form-row">
-                    <input id="c-emoji" placeholder="Emoji (📐)" value="📐">
-                    <input id="c-color" type="color" value="#6366f1" style="height:48px; padding:4px; flex:0;">
-                    <button class="btn btn-primary" onclick="addCourse()">Qo'shish</button>
-                </div>
+                <button class="btn btn-primary" onclick="addCourse()">Qo'shish</button>
             </div>
 
-            <div class="card" style="max-width:100%; margin-bottom:20px;">
+            <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
                 <h3 style="margin-top:0;">⚙️ Sozlamalar</h3>
                 <input id="conf-name" placeholder="Akademiya nomi">
                 <input id="conf-card" placeholder="To'lov karta raqami (8600 ...)">
                 <button class="btn btn-primary" onclick="saveConf()">Saqlash</button>
             </div>
 
-            <div class="card" style="max-width:100%;">
-                <h3 style="margin-top:0;">📊 Kurslar boshqaruvi</h3>
+            <div class="card block admin-only" style="max-width:100%;">
+                <h3 style="margin-top:0;">📊 Kurslar ro'yxati (narx va o'chirish)</h3>
                 <table>
-                    <thead><tr><th>Kurs</th><th>Fan</th><th>Til</th><th>Narx</th><th>Darslar</th><th>O'quvchi</th><th></th></tr></thead>
+                    <thead><tr><th>Kurs</th><th>Fan</th><th>Til</th><th>Dars</th><th>Narx</th><th></th></tr></thead>
                     <tbody id="admin-courses-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- DARSLAR (ADMIN) -->
+        <!-- DARSLAR + VIDEO -->
         <div id="tab-darslar" class="tab-page" style="display:none;">
-            <div class="card" style="max-width:100%; margin-bottom:20px;">
-                <h3 style="margin-top:0;">➕ Yangi dars qo'shish</h3>
-                <select id="lesson-course" style="margin-bottom:12px;"></select>
-                <div class="form-row">
-                    <input id="l-title" placeholder="Dars nomi" style="flex:2;">
-                    <input id="l-video" placeholder="YouTube havolasi" style="flex:2;">
-                </div>
-                <div class="form-row">
-                    <input id="l-week" type="number" placeholder="Hafta №" min="1" value="1">
-                    <input id="l-day" placeholder="Kun (Dushanba)">
-                </div>
-                <textarea id="l-desc" rows="2" placeholder="Dars haqida qisqacha"></textarea>
-                <button class="btn btn-primary" onclick="addLesson()">Darsni qo'shish</button>
+            <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
+                <h3 style="margin-top:0;">🎬 Videolarni joylash</h3>
+                <select id="lesson-course" onchange="renderLessonsAdmin()" style="margin-bottom:12px;"></select>
+                <div class="chip">💡 Har dars yonida 🔍 tugma — bosasiz, YouTube'da o'sha dars avtomatik qidiriladi. Eng yaxshi videoni tanlab, linkini yopishtirasiz. (1 dars ≈ 30 soniya)</div>
             </div>
-            <div id="lessons-preview"></div>
+            <div id="lessons-admin-list"></div>
         </div>
 
-        <!-- TESTLAR (ADMIN) -->
-        <div id="tab-testlar" class="tab-page" style="display:none;">
-            <div class="card" style="max-width:100%; margin-bottom:20px;">
-                <h3 style="margin-top:0;">➕ Yangi test savoli</h3>
-                <select id="quiz-course" style="margin-bottom:12px;"></select>
-                <input id="q-title" placeholder="Savol">
-                <div class="form-row">
-                    <input id="q-a" placeholder="A variant">
-                    <input id="q-b" placeholder="B variant">
-                </div>
-                <div class="form-row">
-                    <input id="q-c" placeholder="C variant">
-                    <input id="q-d" placeholder="D variant">
-                </div>
-                <select id="q-answer">
-                    <option value="0">To'g'ri javob: A</option>
-                    <option value="1">To'g'ri javob: B</option>
-                    <option value="2">To'g'ri javob: C</option>
-                    <option value="3">To'g'ri javob: D</option>
-                </select>
-                <button class="btn btn-primary" onclick="addQuiz()">Savolni qo'shish</button>
-            </div>
-        </div>
-
-        <!-- O'QUVCHILAR (ADMIN) -->
+        <!-- O'QUVCHILAR -->
         <div id="tab-oquvchi" class="tab-page" style="display:none;">
-            <div class="card" style="max-width:100%;">
-                <h3 style="margin-top:0;">👥 O'quvchilar ro'yxati</h3>
+            <div class="card block admin-only" style="max-width:100%;">
+                <h3 style="margin-top:0;">👥 O'quvchilar</h3>
                 <table>
-                    <thead><tr><th>Ism</th><th>Telefon</th><th>Olingan kurslar</th><th>To'lov</th><th>Ro'yxatdan o'tgan</th></tr></thead>
+                    <thead><tr><th>Ism</th><th>Telefon</th><th>Kurslar</th><th>To'lov</th></tr></thead>
                     <tbody id="users-body"></tbody>
                 </table>
             </div>
@@ -353,6 +295,139 @@
     </div>
 
     <script>
+        /* ============================================================
+           📦 TAYYOR KURSLAR PAKETI — 10 FAN (darslar + haftalar + testlar)
+           ============================================================ */
+        const DAYS = ["Dushanba","Seshanba","Payshanba","Juma","Shanba"];
+        function L(arr){ // [nom, hafta, kun] -> obyekt
+            return arr.map((x,i)=>({ title:x[0], week:x[1], day:DAYS[x[2]], video:"" }));
+        }
+        function Q(arr){ // [savol, [A,B,C,D], to'g'ri] -> obyekt
+            return arr.map(x=>({ title:x[0], a:x[1][0], b:x[1][1], c:x[1][2], d:x[1][3], answer:String(x[2]) }));
+        }
+
+        const SEED = [
+        { title:"Matematika — 7-sinf", cat:"📐 Matematika", lang:"🇺🇿 O'zbek", emoji:"📐", color:"#6366f1", price:0, weeks:4,
+          desc:"Darajalar, formulalar, funksiyalar — bosqichma-bosqich",
+          lessons:L([["Darajalar va ildizlar",1,0],["Birhadlar",1,1],["Ko'phadlar",1,2],
+                     ["Qisqa ko'paytirish formulalari",2,0],["Formulalarga misollar",2,1],["Oddiy tenglamalar",2,2],
+                     ["Funksiya tushunchasi",3,0],["Chiziqli funksiya",3,1],["Grafik chizish",3,2],
+                     ["Takrorlash",4,0],["Umumiy mashqlar",4,1],["Yakuniy sinov",4,2]]),
+          quizzes:Q([["2³ nechaga teng?",["6","8","9","5"],1],
+                     ["(a+b)² = ?",["a²+b²","a²+2ab+b²","2a+2b","a²-b²"],1],
+                     ["√16 = ?",["2","4","8","16"],1]]) },
+
+        { title:"Ingliz tili — 0 dan boshlash", cat:"🇬🇧 Ingliz tili", lang:"🇺🇿 O'zbek", emoji:"🇬🇧", color:"#0ea5e9", price:0, weeks:4,
+          desc:"Alifbodan boshlab sodda gapirgacha",
+          lessons:L([["Alphabet and sounds",1,0],["Greetings and introductions",1,1],["Numbers 1-100",1,2],
+                     ["Pronouns (I, you, he...)",2,0],["Verb 'to be'",2,1],["My family",2,2],
+                     ["Present Simple",3,0],["Daily routine",3,1],["Making questions",3,2],
+                     ["Past Simple",4,0],["Future plans",4,1],["Final review",4,2]]),
+          quizzes:Q([["'Kitob' inglizcha?",["Book","Bock","Buuk","Bok"],0],
+                     ["I ___ a student.",["is","are","am","be"],2],
+                     ["She ___ to school every day.",["go","goes","going","gone"],1]]) },
+
+        { title:"Rus tili — boshlang'ich", cat:"🇷🇺 Rus tili", lang:"🇺🇿 O'zbek", emoji:"🇷🇺", color:"#ef4444", price:0, weeks:4,
+          desc:"Alfavitsadan sodda suhbatgacha",
+          lessons:L([["Алфавит и звуки",1,0],["Приветствие и знакомство",1,1],["Числа",1,2],
+                     ["Местоимения",2,0],["Глаголы настоящего времени",2,1],["Моя семья",2,2],
+                     ["Прошедшее время",3,0],["Вопросы",3,1],["В магазине",3,2],
+                     ["Повторение",4,0],["Практика речи",4,1],["Итоговый тест",4,2]]),
+          quizzes:Q([["'Salom' ruscha?",["Привет","Пока","Спасибо","Да"],0],
+                     ["'Rahmat' ruscha?",["Пожалуйста","Спасибо","Извините","Здравствуйте"],1],
+                     ["Как сказать 'мен'? ",["я","ты","он","она"],0]]) },
+
+        { title:"Dasturlash — Python asoslari", cat:"💻 Dasturlash", lang:"🇺🇿 O'zbek", emoji:"💻", color:"#10b981", price:0, weeks:4,
+          desc:"Noldan boshlab: o'zgaruvchilar, tsikllar, loyihalar",
+          lessons:L([["Python o'rnatish",1,0],["print() va o'zgaruvchilar",1,1],["Ma'lumot turlari",1,2],
+                     ["Shartlar (if/else)",2,0],["For tsikli",2,1],["While tsikli",2,2],
+                     ["Ro'yxatlar (list)",3,0],["Funksiyalar",3,1],["Lug'atlar (dict)",3,2],
+                     ["Loyiha: Kalkulyator",4,0],["Loyiha: O'yin",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["print('Salom') nima qiladi?",["O'chiradi","Ekranga chiqaradi","Hisoblaydi","Saqlaydi"],1],
+                     ["if/else nimasi?",["Tsikl","Shart","Funksiya","Ro'yxat"],1],
+                     ["for i in range(3) necha marta?",["2","3","4","1"],1]]) },
+
+        { title:"Fizika — asoslar", cat:"🧪 Fizika", lang:"🇺🇿 O'zbek", emoji:"🧪", color:"#f59e0b", price:0, weeks:4,
+          desc:"Harakat, kuch, energiya va boshqalar",
+          lessons:L([["Fizika nima?",1,0],["Mexanik harakat",1,1],["Tezlik",1,2],
+                     ["Kuch tushunchasi",2,0],["Nyuton qonunlari",2,1],["Massa va og'irlik",2,2],
+                     ["Ish va quvvat",3,0],["Energiya turlari",3,1],["Issiqlik",3,2],
+                     ["Takrorlash",4,0],["Masalalar",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["Tezlik birligi?",["kg","m/s","N","J"],1],
+                     ["Nyuton qonunlari nechta?",["2","3","4","5"],1],
+                     ["Quvvat birligi?",["Vatt","Nyuton","Joul","Paskal"],0]]) },
+
+        { title:"Kimyo — boshlang'ich", cat:"⚗️ Kimyo", lang:"🇺🇿 O'zbek", emoji:"⚗️", color:"#8b5cf6", price:0, weeks:4,
+          desc:"Atomlar, moddalar, reaksiyalar",
+          lessons:L([["Kimyo nima o'rganadi?",1,0],["Atom tuzilishi",1,1],["Kimyoviy belgilar",1,2],
+                     ["Valentlik",2,0],["Oddiy moddalar",2,1],["Reaksiya tenglamalari",2,2],
+                     ["Kislotalar",3,0],["Asoslar",3,1],["Tuzlar",3,2],
+                     ["Takrorlash",4,0],["Masalalar",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["H₂O nimasi?",["Kislorod","Suv","Vodorod","Tuz"],1],
+                     ["Eng yengil atom?",["Geliy","Vodorod","Kislorod","Uglerod"],1],
+                     ["NaCl nimasi?",["Suv","Tuz","Shakar","Kislota"],1]]) },
+
+        { title:"Biologiya — asoslar", cat:"🧬 Biologiya", lang:"🇺🇿 O'zbek", emoji:"🧬", color:"#14b8a6", price:0, weeks:4,
+          desc:"Hujayra, o'simliklar, hayvonlar, inson",
+          lessons:L([["Biologiya fani",1,0],["Hujayra tuzilishi",1,1],["Hujayra bo'linishi",1,2],
+                     ["O'simliklar tuzilishi",2,0],["Fotosintez",2,1],["O'simlik turlari",2,2],
+                     ["Hayvonlar sinflari",3,0],["Inson organlari",3,1],["Qon aylanishi",3,2],
+                     ["Takrorlash",4,0],["Masalalar",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["Fotosintez qayerda bo'ladi?",["Ildiz","Barg","Poya","Gul"],1],
+                     ["Inson yuragi necha kamerali?",["2","3","4","5"],2],
+                     ["Eng kichik tirik birlik?",["To'qima","Hujayra","Organ","Organizm"],1]]) },
+
+        { title:"O'zbekiston tarixi", cat:"🌍 Tarix", lang:"🇺🇿 O'zbek", emoji:"🌍", color:"#f97316", price:0, weeks:4,
+          desc:"Qadim zamondan mustaqillikka",
+          lessons:L([["Qadimgi davlatlar",1,0],["Sohibqiron Amir Temur",1,1],["Temuriylar davri",1,2],
+                     ["Xonliklar davri",2,0],["Rossiya istilosi",2,1],["Milliy uyg'onish",2,2],
+                     ["Mustaqillik ostonasida",3,0],["Mustaqillik yillari",3,1],["Zamonaviy O'zbekiston",3,2],
+                     ["Takrorlash",4,0],["Savol-javob",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["Amir Temur qachon hukmronlik qilgan?",["14-asr","15-asr","13-asr","16-asr"],0],
+                     ["O'zbekiston mustaqilligi yili?",["1990","1991","1992","1989"],1],
+                     ["Poytaxtimiz?",["Samarqand","Buxoro","Toshkent","Xiva"],2]]) },
+
+        { title:"Geografiya — asoslar", cat:"🗺 Geografiya", lang:"🇺🇿 O'zbek", emoji:"🗺", color:"#22c55e", price:0, weeks:4,
+          desc:"Qit'alar, okeanlar, O'zbekiston tabiati",
+          lessons:L([["Yer shari",1,0],["Qit'alar",1,1],["Okeanlar",1,2],
+                     ["Iqlim turlari",2,0],["Dengizlar",2,1],["Tog'lar",2,2],
+                     ["O'zbekiston tabiati",3,0],["Daryolar",3,1],["Shaharlar",3,2],
+                     ["Takrorlash",4,0],["Xarita bilan ishlash",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["Eng katta okean?",["Atlantika","Hind","Tinch","Shimoliy Muz"],2],
+                     ["O'zbekistonning eng uzun daryosi?",["Zarafshon","Amudaryo","Sirdaryo","Chirchiq"],2],
+                     ["Qit'alar soni?",["5","6","7","8"],2]]) },
+
+        { title:"Ona tili va adabiyot", cat:"🇺🇿 Ona tili", lang:"🇺🇿 O'zbek", emoji:"🇺🇿", color:"#eab308", price:0, weeks:4,
+          desc:"Qoidalar, imlo, taniqli adiblar",
+          lessons:L([["Fonetika asoslari",1,0],["Unlilar va undoshlar",1,1],["Bo'g'in",1,2],
+                     ["So'z turkumlari",2,0],["Ot",2,1],["Sifat",2,2],
+                     ["Fe'l",3,0],["Ravish",3,1],["Qo'shimchalar",3,2],
+                     ["Adabiyot: Navoiy",4,0],["Adabiyot: Bobur",4,1],["Yakuniy test",4,2]]),
+          quizzes:Q([["O'zbek alifbosida nechta harf?",["33","35","29","31"],1],
+                     ["'Bobur' kim bo'lgan?",["Shoir va sarkarda","Olim","Rassom","Doktor"],0],
+                     ["Fe'l nimani ifodalaydi?",["Buyum","Harakat","Belgi","Joy"],1]]) },
+        ];
+
+        function seedInstall(){
+            const list = coursesArr();
+            let q = 0;
+            SEED.forEach(s => {
+                const bor = list.some(c => c.title === s.title);
+                if (!bor) {
+                    window.courses.push({ ...s, id: uid() });
+                    q++;
+                }
+            });
+            if (q) {
+                window.saveCourses(); renderAdmin();
+                document.getElementById('seed-status').innerHTML = `<span class="chip" style="color:var(--success)">✅ ${q} ta kurs yuklandi! Endi «🎬 Darslar»da videolarni joylang</span>`;
+                toast(q + " ta tayyor kurs qo'shildi! 🎉");
+            } else {
+                document.getElementById('seed-status').innerHTML = `<span class="chip">Paket allaqachon yuklangan 😊</span>`;
+            }
+        }
+
+        /* ---------- ASOSIY ---------- */
         let currentTab = 'kurslar';
         const esc = s => String(s ?? '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
         const fmt = n => (+n||0).toLocaleString();
@@ -372,7 +447,6 @@
             if (a) a.innerText = map[window.cloudStatus] || '';
         }
 
-        /* ---------- AUTH ---------- */
         function toggleLogin(){
             const a = document.getElementById('login-form'), b = document.getElementById('login-exist');
             const s = a.style.display === 'none';
@@ -383,11 +457,10 @@
             const name = document.getElementById('auth-name').value.trim();
             const phone = document.getElementById('auth-phone').value.replace(/[^0-9]/g,'');
             const pass = document.getElementById('auth-pass').value;
-            if (!name || phone.length < 9 || pass.length < 4) return toast("Ism, telefon (9+ raqam) va parol (4+ belgi) kiriting!", 'warn');
-            if (usersObj()[phone]) return toast("Bu raqam allaqachon bor — «Akkauntim bor» orqali kiring!", 'err');
+            if (!name || phone.length < 9 || pass.length < 4) return toast("Ism, telefon va parol (4+ belgi) kiriting!", 'warn');
+            if (usersObj()[phone]) return toast("Bu raqam bor — «Akkauntim bor» orqali kiring!", 'err');
             usersObj()[phone] = { name, pass, role:'student', joined:new Date().toISOString().slice(0,10), bought:{}, progress:{}, quizResults:{} };
-            window.saveUsers();
-            enterApp(phone);
+            window.saveUsers(); enterApp(phone);
             toast("Xush kelibsiz, " + name + "! 🎉");
         }
         function login(){
@@ -403,8 +476,8 @@
             if (u === window.config.adminUser && p === window.config.adminPass) {
                 window.currentUser = { id:'admin', name:'Admin', role:'admin' };
                 sessionStorage.setItem('lmsAuth','admin');
-                afterAuth(); toast("Admin sifatida kirdingiz ⚙️");
-            } else toast("Admin login/parol xato!", 'err');
+                afterAuth(); toast("Admin rejimi ⚙️");
+            } else toast("Xato!", 'err');
         }
         function enterApp(phone){
             const u = usersObj()[phone];
@@ -422,7 +495,6 @@
         }
         function logout(){ sessionStorage.clear(); location.reload(); }
 
-        /* ---------- TABLAR ---------- */
         function switchTab(t){
             currentTab = t;
             document.querySelectorAll('.tab-page').forEach(p=>p.style.display='none');
@@ -434,11 +506,11 @@
         function renderCurrent(){
             if (!window.currentUser) return;
             ({ kurslar:renderCatalog, mening:renderMy, boshqaruv:renderAdmin,
-               darslar:renderDarslar, testlar:renderTeacherSelects, oquvchi:renderUsers })[currentTab]();
+               darslar:renderDarslarTab, oquvchi:renderUsers })[currentTab]();
             updateSync();
         }
 
-        /* ---------- KURSLAR KATALOGI (FILTRLAR BILAN) ---------- */
+        /* ---------- KATALOG ---------- */
         function renderCatalog(){
             const cats = [...new Set(coursesArr().map(c=>c.cat).filter(Boolean))];
             const langs = [...new Set(coursesArr().map(c=>c.lang).filter(Boolean))];
@@ -459,8 +531,7 @@
 
             document.getElementById('catalog').innerHTML = list.length ? list.map(c => {
                 const bought = isBought(c.id);
-                const nLess = (c.lessons||[]).length;
-                const nStud = countStudents(c.id);
+                const ready = (c.lessons||[]).filter(l=>l.video).length;
                 return `<div class="course-card" onclick="openCourse('${c.id}')">
                     <div class="course-cover" style="background:${c.color||'#6366f1'}">
                         <span class="cat-badge">${esc(c.cat||'')}</span>${c.emoji||'📚'}
@@ -469,41 +540,35 @@
                         <h3>${esc(c.title)}</h3>
                         <p>${esc(c.desc||'')}</p>
                         <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">
-                            ${esc(c.lang||'')} | 🎬 ${nLess} dars | 👥 ${nStud} o'quvchi${c.weeks?` | 📅 ${c.weeks} hafta`:''}
+                            ${esc(c.lang||'')} | 🎬 ${ready}/${(c.lessons||[]).length} video tayyor | 👥 ${countStudents(c.id)}
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="price-tag">${+c.price>0 ? fmt(c.price)+" so'm" : 'BEPUL'}</span>
                             <span class="chip">${bought?'✅ Menda':'👁 Ko\'rish'}</span>
                         </div>
                     </div></div>`;
-            }).join('') : '<div class="chip">Kurs topilmadi — filtrlarni o\'zgartirib ko\'ring</div>';
+            }).join('') : '<div class="chip">Kurs topilmadi. Admin: «⚙️ Boshqaruv»da «📥 Paketni yuklash» bosing!</div>';
         }
         function countStudents(cid){
             let n = 0;
-            Object.values(usersObj()).forEach(u => { if (u.bought && u.bought[cid]) n++; });
+            Object.values(usersObj()).forEach(u => { if (u.bought && u.bought[cid] && u.bought[cid].status==='paid') n++; });
             return n;
         }
         function isBought(cid){
             if (!window.currentUser || window.currentUser.role === 'admin') return true;
             const u = window.currentUser.data;
-            return u && u.bought && u.bought[cid];
+            return u && u.bought && u.bought[cid] && u.bought[cid].status === 'paid';
         }
 
-        /* ---------- KURS SAHIFASI (HAFTALIK REJA BILAN) ---------- */
+        /* ---------- KURS SAHIFASI ---------- */
         function openCourse(cid){
             const c = coursesArr().find(x=>x.id===cid); if (!c) return;
             const bought = isBought(cid);
             const lessons = (c.lessons||[]);
             const quizzes = (c.quizzes||[]);
             const prog = myProgress(c);
-
-            // Haftalar bo'yicha guruhlash
             const weeks = {};
-            lessons.forEach((l,i) => {
-                const w = l.week || 1;
-                (weeks[w] = weeks[w]||[]).push({...l, _i:i});
-            });
-            const weekNums = Object.keys(weeks).sort((a,b)=>a-b);
+            lessons.forEach((l,i) => { const w = l.week||1; (weeks[w]=weeks[w]||[]).push({...l,_i:i}); });
 
             let html = `<h2 style="margin-top:0;">${c.emoji||'📚'} ${esc(c.title)}</h2>
                 <div style="margin-bottom:10px;">
@@ -516,26 +581,25 @@
                 <div class="chip" style="display:inline-block; margin-bottom:16px;">📊 ${prog.done}/${lessons.length} dars (${prog.pct}%)</div>`;
 
             if (!bought) {
-                const card = window.config.payCard || 'Admin karta raqamini kiritmagan';
                 html += `<div style="background:#fff7ed; border:1px solid #fdba74; border-radius:16px; padding:18px; margin-bottom:16px;">
                     <h3 style="margin:0 0 8px;">🔒 Bu kurs pullik</h3>
                     <p style="margin:0 0 6px;">Narx: <b>${fmt(c.price)} so'm</b></p>
-                    <p style="margin:0 0 12px; font-size:13px;">💳 To'lov: <b>${esc(card)}</b></p>
-                    <button class="btn btn-success" onclick="payCourse('${cid}')">💳 To'lov qildim — kursni ochish</button>
+                    <p style="margin:0 0 12px; font-size:13px;">💳 Karta: <b>${esc(window.config.payCard||'Admin kiritmagan')}</b></p>
+                    <button class="btn btn-success" onclick="payCourse('${cid}')">💳 To'lov qildim — ochish</button>
                 </div>`;
             } else {
-                html += `<h3>📅 O'quv dasturi (haftalar bo'yicha)</h3>`;
-                if (!lessons.length) html += '<div class="chip" style="margin-bottom:12px;">Darslar hali qo\'shilmagan</div>';
-                weekNums.forEach(w => {
+                html += `<h3>📅 O'quv dasturi</h3>`;
+                Object.keys(weeks).sort((a,b)=>a-b).forEach(w => {
                     html += `<div class="week-card"><b>📅 ${w}-hafta</b>`;
                     weeks[w].forEach(l => {
                         const done = isDone(c.id, l._i);
+                        const hasVideo = !!l.video;
                         html += `<div class="lesson-row ${done?'done':''}" style="margin-top:8px; background:var(--card);">
                             <div><b>${esc(l.title)}</b>
                                 ${l.day?`<span class="chip" style="font-size:10px; padding:2px 8px; margin-left:6px;">${esc(l.day)}</span>`:''}
-                                ${l.desc?`<div style="font-size:12px; color:var(--sub);">${esc(l.desc)}</div>`:''}
+                                ${!hasVideo?`<span class="chip" style="font-size:10px; padding:2px 8px; margin-left:4px;">⏳ video tez orada</span>`:''}
                             </div>
-                            <button class="btn ${done?'btn-outline':'btn-primary'}" onclick="watchLesson('${cid}',${l._i})">${done?'✅ Qayta ko\'rish':'▶️ Ko\'rish'}</button>
+                            ${hasVideo?`<button class="btn ${done?'btn-outline':'btn-primary'}" onclick="watchLesson('${cid}',${l._i})">${done?'✅ Qayta ko\'rish':'▶️ Ko\'rish'}</button>`:''}
                         </div>`;
                     });
                     html += '</div>';
@@ -549,20 +613,21 @@
         }
         function closeCourse(){ document.getElementById('modal-course').style.display='none'; renderCurrent(); }
 
+        function getVideoId(v){
+            const m1 = String(v).match(/youtu\.be\/([\w-]+)/), m2 = String(v).match(/watch\?v=([\w-]+)/),
+                  m3 = String(v).match(/embed\/([\w-]+)/), m4 = String(v).match(/shorts\/([\w-]+)/);
+            return m1?m1[1] : m2?m2[1] : m3?m3[1] : m4?m4[1] : (/^[\w-]{11}$/.test(v) ? v : '');
+        }
         function watchLesson(cid, idx){
             const c = coursesArr().find(x=>x.id===cid); if (!c) return;
             const l = c.lessons[idx];
-            let v = l.video||'', vid = '';
-            const m1 = v.match(/youtu\.be\/([\w-]+)/), m2 = v.match(/youtube\.com\/watch\?v=([\w-]+)/), m3 = v.match(/embed\/([\w-]+)/), m4 = v.match(/shorts\/([\w-]+)/);
-            if (m1) vid = m1[1]; else if (m2) vid = m2[1]; else if (m3) vid = m3[1]; else if (m4) vid = m4[1];
-
+            const vid = getVideoId(l.video||'');
             let html = `<h2 style="margin-top:0;">🎬 ${esc(l.title)}</h2>
                 <span class="chip" style="display:inline-block; margin-bottom:12px;">📅 ${l.week||1}-hafta ${l.day?'| '+esc(l.day):''}</span>`;
             if (vid) html += `<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe></div>`;
             else html += '<div class="chip" style="margin-bottom:12px;">⚠️ Video havolasi noto\'g\'ri</div>';
-            if (l.desc) html += `<p>${esc(l.desc)}</p>`;
             html += `<button class="btn btn-success" onclick="markDone('${cid}',${idx})">✅ Darsni tugalladim</button>
-                     <button class="btn btn-outline" onclick="openCourse('${cid}')" style="margin-left:8px;">⬅️ Dasturga qaytish</button>`;
+                     <button class="btn btn-outline" onclick="openCourse('${cid}')" style="margin-left:8px;">⬅️ Dastur</button>`;
             document.getElementById('course-detail').innerHTML = html;
         }
         function markDone(cid, idx){ if (!window.currentUser?.data) return;
@@ -629,10 +694,10 @@
                     <div class="stat-card"><span>Natija</span><h2 style="color:${pct>=70?'var(--success)':'var(--danger)'}">${pct}%</h2></div>
                 </div>`;
             if (pct >= 70) {
-                html += `<p>🏆 Tabriklaymiz! Sertifikatingiz tayyor:</p>
-                    <button class="btn btn-primary" onclick="makeCertificate('${q.cid}')">🏆 Sertifikatni yuklab olish</button>`;
+                html += `<p>🏆 Tabriklaymiz! Sertifikat oling:</p>
+                    <button class="btn btn-primary" onclick="makeCertificate('${q.cid}')">🏆 Sertifikat olish</button>`;
             } else {
-                html += `<p>📖 70%+ kerak. Darslarni yana bir bor ko'rib chiqing!</p>`;
+                html += `<p>📖 70%+ kerak. Darslarni yana ko'rib chiqing!</p>`;
             }
             html += ` <button class="btn btn-outline" onclick="openCourse('${q.cid}')">⬅️ Kursga qaytish</button>`;
             document.getElementById('course-detail').innerHTML = html;
@@ -641,7 +706,6 @@
             const c = coursesArr().find(x=>x.id===cid);
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape');
-            const name = window.currentUser.name;
             doc.setDrawColor(99,102,241); doc.setLineWidth(5); doc.rect(10,10,277,190);
             doc.setDrawColor(200,200,220); doc.setLineWidth(1); doc.rect(17,17,263,176);
             doc.setFontSize(32); doc.setTextColor(99,102,241);
@@ -651,14 +715,14 @@
             doc.setFontSize(12); doc.setTextColor(60);
             doc.text("quyidagi shaxsga berildi:", 148.5, 80, {align:'center'});
             doc.setFontSize(24); doc.setTextColor(30,30,30);
-            doc.text(name, 148.5, 98, {align:'center'});
+            doc.text(window.currentUser.name, 148.5, 98, {align:'center'});
             doc.setFontSize(12); doc.setTextColor(60);
             doc.text("quyidagi kursni muvaffaqiyatli yakunlagani uchun:", 148.5, 112, {align:'center'});
             doc.setFontSize(18); doc.setTextColor(99,102,241);
             doc.text(c.title, 148.5, 128, {align:'center'});
             const qr = (window.currentUser.data?.quizResults?.[cid]?.pct) || 100;
             doc.setFontSize(11); doc.setTextColor(120);
-            doc.text(`Test natijasi: ${qr}% | Sana: ${new Date().toLocaleDateString('uz-UZ')} | ID: ${cid.slice(0,8).toUpperCase()}`, 148.5, 165, {align:'center'});
+            doc.text(`Natija: ${qr}% | Sana: ${new Date().toLocaleDateString('uz-UZ')} | ID: ${cid.slice(0,8).toUpperCase()}`, 148.5, 165, {align:'center'});
             doc.save('Sertifikat.pdf');
             toast("Sertifikat yuklab olindi! 🏆");
         }
@@ -666,24 +730,16 @@
         /* ---------- TO'LOV ---------- */
         function payCourse(cid){ if (!window.currentUser?.data) return;
             const c = coursesArr().find(x=>x.id===cid);
-            const card = window.config.payCard || 'Admin karta kiritmagan';
-            const check = prompt(`💰 Kurs narxi: ${fmt(c.price)} so'm\n\n💳 Karta: ${card}\n\n` +
-                `To'lov qilgach, chek/kvitansiya raqamini kiriting.\nAdmin tekshirib kursni ochadi:`);
+            const check = prompt(`💰 Narx: ${fmt(c.price)} so'm\n💳 Karta: ${window.config.payCard||'—'}\n\nTo'lov qilgach, chek raqamini kiriting (admin tasdiqlaydi):`);
             if (!check) return;
             const u = window.currentUser.data;
             if (!u.bought) u.bought = {};
             u.bought[cid] = { date:new Date().toISOString().slice(0,10), check, price:c.price, status:'pending' };
             window.saveUsers();
-            toast("✅ To'lov yuborildi! Admin tasdiqlagach darslar ochiladi.", 'ok');
-        }
-        function confirmBuy(phone, cid){
-            const u = usersObj()[phone]; if (!u || !u.bought || !u.bought[cid]) return;
-            u.bought[cid].status = 'paid';
-            window.saveUsers(); renderUsers();
-            toast("Kurs o'quvchi uchun ochildi ✅");
+            toast("✅ Yuborildi! Admin tasdiqlagach ochiladi.");
         }
 
-        /* ---------- ADMIN: STATISTIKA + KURSLAR ---------- */
+        /* ---------- ADMIN ---------- */
         function renderAdmin(){
             const list = coursesArr();
             document.getElementById('st-courses').innerText = list.length;
@@ -692,40 +748,45 @@
             let rev = 0;
             Object.values(usersObj()).forEach(u => Object.values(u.bought||{}).forEach(b => { if (b.status==='paid') rev += +b.price||0; }));
             document.getElementById('st-revenue').innerText = fmt(rev);
-
             document.getElementById('conf-name').value = window.config.academyName || '';
             document.getElementById('conf-card').value = window.config.payCard || '';
 
             document.getElementById('admin-courses-body').innerHTML = list.map(c =>
                 `<tr><td><b>${c.emoji||'📚'} ${esc(c.title)}</b></td><td>${esc(c.cat||'')}</td>
-                 <td>${esc(c.lang||'')}</td><td>${+c.price>0?fmt(c.price):'Bepul'}</td>
-                 <td>${(c.lessons||[]).length}</td><td>${countStudents(c.id)}</td>
-                 <td><button class="btn btn-danger" style="padding:6px 10px; font-size:12px;" onclick="delCourse('${c.id}')">🗑</button></td></tr>`).join('');
+                 <td>${esc(c.lang||'')}</td><td>${(c.lessons||[]).length}</td>
+                 <td><b>${+c.price>0?fmt(c.price)+' so\'m':'Bepul'}</b>
+                     <button class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-left:6px;" onclick="editPrice('${c.id}')">✏️</button></td>
+                 <td><button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="delCourse('${c.id}')">🗑</button></td></tr>`).join('');
+            renderTeacherSelects();
         }
-        function addCourse(){
-            const title = document.getElementById('c-title').value.trim();
-            if (!title) return toast("Kurs nomini kiriting!", 'warn');
-            if (!Array.isArray(window.courses)) window.courses = [];
-            window.courses.push({
-                id: uid(),
-                title,
-                desc: document.getElementById('c-desc').value.trim(),
-                cat: document.getElementById('c-cat').value,
-                lang: document.getElementById('c-lang').value,
-                price: +document.getElementById('c-price').value || 0,
-                weeks: +document.getElementById('c-weeks').value || 4,
-                emoji: document.getElementById('c-emoji').value.trim() || '📚',
-                color: document.getElementById('c-color').value,
-                lessons: [], quizzes: []
-            });
+        function editPrice(cid){
+            const c = coursesArr().find(x=>x.id===cid); if (!c) return;
+            const v = prompt(`«${c.title}» narxi (so'm, 0=bepul):`, c.price);
+            if (v === null) return;
+            c.price = +v || 0;
             window.saveCourses(); renderAdmin();
-            document.getElementById('c-title').value=''; document.getElementById('c-desc').value='';
-            toast("Kurs qo'shildi ✅ Endi «🎬 Darslar»da dars qo'shing");
+            toast("Narx o'zgartirildi ✅");
         }
         function delCourse(cid){
             if (!confirm("Kurs butunlay o'chirilsinmi?")) return;
             window.courses = coursesArr().filter(c=>c.id!==cid);
             window.saveCourses(); renderAdmin();
+        }
+        function addCourse(){
+            const title = document.getElementById('c-title').value.trim();
+            if (!title) return toast("Nom kiriting!", 'warn');
+            if (!Array.isArray(window.courses)) window.courses = [];
+            window.courses.push({
+                id: uid(), title,
+                desc: document.getElementById('c-desc').value.trim(),
+                cat: document.getElementById('c-cat').value,
+                lang: document.getElementById('c-lang').value,
+                price: +document.getElementById('c-price').value || 0,
+                weeks: 4, emoji: document.getElementById('c-emoji').value.trim() || '📚',
+                color:'#6366f1', lessons: [], quizzes: []
+            });
+            window.saveCourses(); renderAdmin();
+            toast("Kurs qo'shildi ✅");
         }
         function saveConf(){
             window.config.academyName = document.getElementById('conf-name').value.trim() || 'IBRAT Akademiya';
@@ -735,106 +796,85 @@
             toast("Saqlandi ✅");
         }
 
-        /* ---------- ADMIN: DARSLAR (HAFTALIK) ---------- */
-        function renderDarslar(){
+        /* ---------- DARSLAR + VIDEO QO'YISH ---------- */
+        function renderDarslarTab(){
             renderTeacherSelects();
-            const cid = document.getElementById('lesson-course').value;
-            const c = coursesArr().find(x=>x.id===cid);
-            const pv = document.getElementById('lessons-preview');
-            if (!c) { pv.innerHTML = '<div class="chip">Avval kurs qo\'shing</div>'; return; }
-            const lessons = (c.lessons||[]);
-            pv.innerHTML = lessons.length ?
-                `<div class="card" style="max-width:100%;"><h3 style="margin-top:0;">📋 «${esc(c.title)}» darslari (${lessons.length})</h3>` +
-                lessons.map((l,i) => `<div class="lesson-row">
-                    <div><b>${esc(l.title)}</b>
-                        <span class="chip" style="font-size:10px; padding:2px 8px; margin-left:4px;">📅 ${l.week||1}-hafta ${l.day?esc(l.day):''}</span>
-                        ${l.desc?`<div style="font-size:12px; color:var(--sub);">${esc(l.desc)}</div>`:''}</div>
-                    <button class="btn btn-danger" style="padding:6px 10px; font-size:12px;" onclick="delLesson('${cid}',${i})">🗑</button>
-                </div>`).join('') + '</div>'
-                : '<div class="chip">Bu kursda hali dars yo\'q</div>';
+            renderLessonsAdmin();
         }
-        function addLesson(){
-            const cid = document.getElementById('lesson-course').value;
-            const title = document.getElementById('l-title').value.trim();
-            const video = document.getElementById('l-video').value.trim();
-            if (!cid) return toast("Avval kurs qo'shing!", 'warn');
-            if (!title || !video) return toast("Dars nomi va YouTube havolasini kiriting!", 'warn');
-            const c = coursesArr().find(x=>x.id===cid); if (!c) return;
-            if (!c.lessons) c.lessons = [];
-            c.lessons.push({
-                title, video,
-                desc: document.getElementById('l-desc').value.trim(),
-                week: +document.getElementById('l-week').value || 1,
-                day: document.getElementById('l-day').value.trim()
-            });
-            window.saveCourses(); renderDarslar();
-            document.getElementById('l-title').value=''; document.getElementById('l-video').value='';
-            document.getElementById('l-desc').value=''; document.getElementById('l-day').value='';
-            toast("Dars qo'shildi ✅");
-        }
-        function delLesson(cid, i){
-            const c = coursesArr().find(x=>x.id===cid); if (!c) return;
-            c.lessons.splice(i,1); window.saveCourses(); renderDarslar();
-        }
-
-        /* ---------- ADMIN: TESTLAR ---------- */
         function renderTeacherSelects(){
             const list = coursesArr();
-            const opts = list.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('') || '<option value="">Avval kurs qo\'shing</option>';
-            ['lesson-course','quiz-course'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) { const cur = el.value; el.innerHTML = opts; if (cur) el.value = cur; }
-            });
+            const opts = list.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('') || '<option value="">Avval paketni yuklang</option>';
+            const el = document.getElementById('lesson-course');
+            if (el) { const cur = el.value; el.innerHTML = opts; if (cur) el.value = cur; }
         }
-        function addQuiz(){
-            const cid = document.getElementById('quiz-course').value;
-            const title = document.getElementById('q-title').value.trim();
-            if (!cid) return toast("Avval kurs qo'shing!", 'warn');
-            if (!title) return toast("Savolni kiriting!", 'warn');
+        function renderLessonsAdmin(){
+            const cid = document.getElementById('lesson-course').value;
+            const c = coursesArr().find(x=>x.id===cid);
+            const el = document.getElementById('lessons-admin-list');
+            if (!c) { el.innerHTML = '<div class="chip">Avval «⚙️ Boshqaruv»da paketni yuklang</div>'; return; }
+            const lessons = (c.lessons||[]);
+            el.innerHTML = lessons.length ?
+                `<div class="card block admin-only" style="max-width:100%;">
+                 <h3 style="margin-top:0;">📋 «${esc(c.title)}» — ${lessons.length} dars</h3>` +
+                lessons.map((l,i) => {
+                    const hasVideo = !!l.video && getVideoId(l.video);
+                    return `<div class="lesson-row">
+                        <div style="flex:1; min-width:180px;">
+                            <b>${esc(l.title)}</b>
+                            <span class="chip" style="font-size:10px; padding:2px 8px; margin-left:4px;">📅 ${l.week||1}-hafta ${l.day?esc(l.day):''}</span>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; flex:2; min-width:220px;">
+                            <input id="vid_${i}" value="${esc(l.video||'')}" placeholder="YouTube link yopishtiring..."
+                                   style="margin:0; flex:1; min-width:150px; padding:8px;">
+                            <button class="btn btn-outline" style="padding:8px 10px; font-size:12px;" onclick="ytSearch('${cid}',${i})">🔍</button>
+                            <button class="btn ${hasVideo?'btn-success':'btn-primary'}" style="padding:8px 12px; font-size:12px;" onclick="saveVideo('${cid}',${i})">💾</button>
+                        </div>
+                    </div>`;
+                }).join('') + '</div>'
+                : '<div class="chip">Bu kursda dars yo\'q</div>';
+        }
+        function ytSearch(cid, i){
             const c = coursesArr().find(x=>x.id===cid); if (!c) return;
-            if (!c.quizzes) c.quizzes = [];
-            c.quizzes.push({
-                title,
-                a: document.getElementById('q-a').value.trim(),
-                b: document.getElementById('q-b').value.trim(),
-                c2: '', d: '',
-                answer: document.getElementById('q-answer').value
-            });
-            // to'g'irlash: 'c' kalit select bilan konflikt
-            const qq = c.quizzes[c.quizzes.length-1];
-            qq.c = document.getElementById('q-c').value.trim();
-            qq.d = document.getElementById('q-d').value.trim();
-            delete qq.c2;
-            window.saveCourses();
-            ['q-title','q-a','q-b','q-c','q-d'].forEach(id=>document.getElementById(id).value='');
-            toast("Savol qo'shildi ✅");
+            const l = c.lessons[i];
+            const q = encodeURIComponent(l.title + ' ' + (c.cat||'').replace(/[^\w\u0400-\u04FF ]/g,'') + ' o\'zbekcha dars');
+            window.open('https://www.youtube.com/results?search_query=' + q, '_blank');
+            toast("YouTube ochildi — videoni tanlab, linkini yopishtiring 🔍");
+        }
+        function saveVideo(cid, i){
+            const c = coursesArr().find(x=>x.id===cid); if (!c) return;
+            const v = document.getElementById('vid_'+i).value.trim();
+            if (v && !getVideoId(v)) return toast("Link formatini tekshiring! (youtu.be/... yoki watch?v=...)", 'err');
+            c.lessons[i].video = v;
+            window.saveCourses(); renderLessonsAdmin(); renderCatalog();
+            toast(v ? "Video saqlandi ✅" : "Video o'chirildi");
         }
 
-        /* ---------- ADMIN: O'QUVCHILAR ---------- */
+        /* ---------- O'QUVCHILAR ---------- */
         function renderUsers(){
-            const rows = Object.entries(usersObj()).map(([ph,u]) => {
+            let html = Object.entries(usersObj()).map(([ph,u]) => {
                 const bought = Object.entries(u.bought||{});
                 const buyStr = bought.length ? bought.map(([cid,b]) => {
                     const c = coursesArr().find(x=>x.id===cid);
-                    const st = b.status==='paid' ? '✅' : '⏳';
-                    return `${st} ${c?esc(c.title):'?'}`;
+                    return `${b.status==='paid'?'✅':'⏳'} ${c?esc(c.title):'?'}`;
                 }).join('<br>') : '—';
-                const paidSum = bought.reduce((a,[cid,b])=>a+(b.status==='paid'?(+b.price||0):0),0);
-                return `<tr><td><b>${esc(u.name)}</b></td><td>${ph}</td><td>${buyStr}</td>
-                    <td><b>${fmt(paidSum)}</b></td><td>${u.joined||''}</td></tr>`;
+                const paid = bought.reduce((a,[cid,b])=>a+(b.status==='paid'?(+b.price||0):0),0);
+                return `<tr><td><b>${esc(u.name)}</b></td><td>${ph}</td><td>${buyStr}</td><td><b>${fmt(paid)}</b></td></tr>`;
             }).join('');
-            document.getElementById('users-body').innerHTML = rows || '<tr><td colspan="5" style="color:var(--sub); text-align:center;">Hali o\'quvchi yo\'q</td></tr>';
-            // Tasdiqlash tugmalari uchun pending ro'yxat
-            const pend = [];
+            // Tasdiqlanmagan to'lovlar
             Object.entries(usersObj()).forEach(([ph,u]) => Object.entries(u.bought||{}).forEach(([cid,b]) => {
-                if (b.status === 'pending') pend.push({ph, cid, name:u.name});
+                if (b.status === 'pending') {
+                    const c = coursesArr().find(x=>x.id===cid);
+                    html += `<tr><td colspan="4"><div class="chip" style="display:block;">⏳ ${esc(u.name)} → ${c?esc(c.title):''}
+                        <button class="btn btn-success" style="padding:5px 10px; font-size:12px; margin-left:8px;" onclick="confirmBuy('${ph}','${cid}')">✅ Tasdiqlash</button></div></td></tr>`;
+                }
             }));
-            if (pend.length) {
-                const c = coursesArr().find(x=>x.id===pend[0].cid);
-                document.getElementById('users-body').innerHTML +=
-                    `<tr><td colspan="5"><div class="chip" style="display:block;">⏳ Tasdiqlanmagan to'lov: ${esc(pend[0].name)} — ${c?esc(c.title):''}
-                     <button class="btn btn-success" style="padding:5px 10px; font-size:12px; margin-left:8px;" onclick="confirmBuy('${pend[0].ph}','${pend[0].cid}')">✅ Tasdiqlash</button></div></td></tr>`;
-            }
+            document.getElementById('users-body').innerHTML = html || '<tr><td colspan="4" style="color:var(--sub); text-align:center;">Hali o\'quvchi yo\'q</td></tr>';
+        }
+        function confirmBuy(phone, cid){
+            const u = usersObj()[phone]; if (!u || !u.bought || !u.bought[cid]) return;
+            u.bought[cid].status = 'paid';
+            window.saveUsers(); renderUsers();
+            toast("Kurs ochildi ✅");
         }
 
         /* ---------- MENING KURSLARIM ---------- */
@@ -842,7 +882,7 @@
             const u = window.currentUser?.data;
             const el = document.getElementById('my-courses');
             if (!u || !u.bought || !Object.values(u.bought).some(b=>b.status==='paid')) {
-                el.innerHTML = '<div class="chip">Sizda hali faol kurs yo\'q — «📚 Kurslar»dan tanlang! (To\'lovi tasdiqlangan kurslar shu yerda ochiladi)</div>';
+                el.innerHTML = '<div class="chip">Faol kurs yo\'q — «📚 Kurslar»dan tanlang! To\'lov tasdiqlangach shu yerda ochiladi.</div>';
                 return;
             }
             const list = coursesArr().filter(c => u.bought[c.id] && u.bought[c.id].status === 'paid');
@@ -854,12 +894,11 @@
                     <div class="course-body">
                         <h3>${esc(c.title)}</h3>
                         <div class="progress-bar" style="margin:8px 0;"><div class="progress-fill" style="width:${prog.pct}%"></div></div>
-                        <p>📊 ${prog.pct}% ${qr?` | 🧠 Test: ${qr.pct}% ${qr.pct>=70?'🏆':''}`:''}</p>
+                        <p>📊 ${prog.pct}% ${qr?` | 🧠 ${qr.pct}% ${qr.pct>=70?'🏆':''}`:''}</p>
                     </div></div>`;
             }).join('');
         }
 
-        /* ---------- QOLGANLAR ---------- */
         function toggleDark(){
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('lmsDark', document.body.classList.contains('dark-mode')?'1':'0');
@@ -871,7 +910,6 @@
         }
         document.addEventListener('keydown', e=>{ if (e.key==='Escape') closeCourse(); });
 
-        // Sessiyadan qayta kirish
         if (sessionStorage.getItem('lmsAuth')) {
             const ph = sessionStorage.getItem('lmsAuth');
             setTimeout(() => {
