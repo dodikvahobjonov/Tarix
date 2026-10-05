@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IBRAT Akademiya — Onlayn Ta'lim</title>
+    <title> Akademiya — Onlayn Ta'lim</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" type="image/x-icon">
     <meta name="theme-color" content="#6366f1">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
         function lsGet(k){ try { return JSON.parse(localStorage.getItem('lms_'+k)); } catch(e){ return null; } }
         window.courses = lsGet('courses') || [];
         window.users   = lsGet('users') || {};
-        window.config  = Object.assign({ adminUser:'admin', adminPass:'123', academyName:'IBRAT Akademiya', payCard:'' }, lsGet('config')||{});
+        window.config  = Object.assign({ adminUser:'admin', adminPass:'6767', academyName:' Akademiya', payCard:'' }, lsGet('config')||{});
         window.currentUser = null;
         window.cloudStatus = 'yuklanmoqda';
         window.saveLocal = function(){
