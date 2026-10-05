@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Akademiya — Onlayn Ta'lim</title>
+    <title>IBRAT Akademiya — Onlayn Ta'lim</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" type="image/x-icon">
     <meta name="theme-color" content="#6366f1">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
         function lsGet(k){ try { return JSON.parse(localStorage.getItem('lms_'+k)); } catch(e){ return null; } }
         window.courses = lsGet('courses') || [];
         window.users   = lsGet('users') || {};
-        window.config  = Object.assign({ adminUser:'admin', adminPass:'123', academyName:'Akademiya', payCard:'' }, lsGet('config')||{});
+        window.config  = Object.assign({ adminUser:'admin', adminPass:'123', academyName:'IBRAT Akademiya', payCard:'' }, lsGet('config')||{});
         window.currentUser = null;
         window.cloudStatus = 'yuklanmoqda';
         window.saveLocal = function(){
@@ -55,6 +55,7 @@
             }
             window.cloudStatus = 'ulandi';
             if (typeof updateSync === 'function') updateSync();
+            if (typeof autoSeed === 'function') autoSeed();
             if (typeof renderCurrent === 'function') renderCurrent();
         });
         onValue(ref(db, 'lms/users'), (s) => {
@@ -102,7 +103,6 @@
         .tab-btn { padding:11px 16px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); font-weight:700; cursor:pointer; font-family:inherit; font-size:13px; }
         .tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
         .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; }
-        /* YO'NALISH KARTALARI */
         .dir-card { border-radius:24px; padding:28px 22px; color:#fff; cursor:pointer; transition:.25s; position:relative; overflow:hidden; min-height:150px; display:flex; flex-direction:column; justify-content:flex-end; }
         .dir-card:hover { transform:translateY(-5px) scale(1.02); box-shadow:0 16px 36px rgba(0,0,0,.25); }
         .dir-card .dir-icon { font-size:44px; position:absolute; top:18px; right:18px; }
@@ -117,8 +117,6 @@
         .course-body h3 { margin:0 0 6px; font-size:14px; }
         .course-body p { margin:0 0 8px; font-size:11px; color:var(--sub); }
         .price-tag { font-weight:800; color:var(--primary); font-size:13px; }
-        .filter-row { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
-        .filter-row select, .filter-row input { width:auto; margin:0; min-width:130px; flex:1; }
         .lesson-row { display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 16px; margin-bottom:8px; flex-wrap:wrap; }
         .lesson-row.done { border-color:var(--success); }
         .quiz-opt { display:block; background:var(--bg); border:2px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px; cursor:pointer; font-family:inherit; font-size:14px; text-align:left; width:100%; transition:.2s; }
@@ -198,17 +196,14 @@
             <button class="tab-btn admin-only" id="tb-oquvchi" onclick="switchTab('oquvchi')">👥 O'quvchilar</button>
         </div>
 
-        <!-- YO'NALISHLAR + KURSLAR -->
         <div id="tab-kurslar" class="tab-page">
             <div id="catalog-area"></div>
         </div>
 
-        <!-- MENING KURSLARIM -->
         <div id="tab-mening" class="tab-page" style="display:none;">
             <div id="my-courses" class="grid"></div>
         </div>
 
-        <!-- BOSHQARUV -->
         <div id="tab-boshqaruv" class="tab-page" style="display:none;">
             <div class="stat-grid">
                 <div class="stat-card"><span>📚 Kurslar</span><h2 id="st-courses" style="color:var(--primary)">0</h2></div>
@@ -218,12 +213,11 @@
             </div>
 
             <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
-                <h3 style="margin-top:0;">📥 Tayyor platforma paketi</h3>
+                <h3 style="margin-top:0;">📥 Platformani tiklash</h3>
                 <p style="font-size:13px; color:var(--sub); margin:0 0 10px;">
-                    <b>3 yo'nalish, 20 kurs</b> (10 til + 5 tabiiy fan + 5 IT/AI kursi) — darslar rejasi, haftalar va test savollari bilan. Videolarni keyin «🎬 Videolar»da 1 daqiqada joylaysiz.
+                    Agar biror narsa buzilsa — bosing: 3 yo'nalish + 20 to'liq kurs qayta yuklanadi (eski kurslar o'rnini bosadi).
                 </p>
-                <button class="btn btn-success" onclick="seedInstall()">📥 Hammasini yuklash</button>
-                <span id="seed-status" style="margin-left:10px;"></span>
+                <button class="btn btn-success" onclick="forceSeed()">📥 20 kursni qayta yuklash</button>
             </div>
 
             <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
@@ -235,7 +229,7 @@
 
             <div class="card block admin-only" style="max-width:100%;">
                 <h3 style="margin-top:0;">💰 Narxlarni belgilash</h3>
-                <div class="chip" style="display:block; margin-bottom:10px;">✏️ tugmani bosib har bir kursga o'z narxingizni qo'ying (0 = bepul)</div>
+                <div class="chip" style="display:block; margin-bottom:10px;">✏️ tugma — har kursga o'z narxingiz (0 = bepul)</div>
                 <table>
                     <thead><tr><th>Yo'nalish</th><th>Kurs</th><th>Dars</th><th>Narx</th><th></th></tr></thead>
                     <tbody id="admin-courses-body"></tbody>
@@ -243,17 +237,15 @@
             </div>
         </div>
 
-        <!-- VIDEOLAR -->
         <div id="tab-darslar" class="tab-page" style="display:none;">
             <div class="card block admin-only" style="max-width:100%; margin-bottom:20px;">
                 <h3 style="margin-top:0;">🎬 Videolarni joylash</h3>
                 <select id="lesson-course" onchange="renderLessonsAdmin()" style="margin-bottom:12px;"></select>
-                <div class="chip" style="display:block;">💡 Har dars yonidagi 🔍 tugma YouTube'da o'sha darsni avtomatik qidiradi. Eng yaxshi videoni tanlab, linkni yopishtiring → 💾. (1 dars ≈ 30 soniya)</div>
+                <div class="chip" style="display:block;">💡 🔍 tugma YouTube'da o'sha darsni qidiradi. Videolar qo'yilmaguncha o'quvchilar 🔍 orqali o'z-o'zidan ko'ra oladi!</div>
             </div>
             <div id="lessons-admin-list"></div>
         </div>
 
-        <!-- O'QUVCHILAR -->
         <div id="tab-oquvchi" class="tab-page" style="display:none;">
             <div class="card block admin-only" style="max-width:100%;">
                 <h3 style="margin-top:0;">👥 O'quvchilar</h3>
@@ -265,7 +257,6 @@
         </div>
     </div>
 
-    <!-- KURS SAHIFASI -->
     <div id="modal-course" style="position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; z-index:9998; overflow-y:auto; padding:20px;">
         <div class="card" style="max-width:800px; margin:0 auto; padding:24px;">
             <div id="course-detail"></div>
@@ -275,205 +266,128 @@
 
     <script>
         /* ================================================================
-           📦 TAYYOR PAKET: 3 YO'NALISH + 20 KURS (darslar + testlar bilan)
+           📦 3 YO'NALISH + 20 TO'LIQ KURS — AVTOMATIK YUKLANADI!
            ================================================================ */
         const DAYS = ["Dushanba","Seshanba","Payshanba","Juma","Shanba"];
         const L = a => a.map(x=>({ title:x[0], week:x[1], day:DAYS[x[2]], video:"" }));
         const Q = a => a.map(x=>({ title:x[0], a:x[1][0], b:x[1][1], c:x[1][2], d:x[1][3], answer:String(x[2]) }));
 
-        const DIR_LANG  = "🌐 Tillar o'rganish";
-        const DIR_SCI   = "🔬 Tabiiy fanlar";
-        const DIR_IT    = "💻 Dasturlash va IT";
+        const DIR_LANG = "🌐 Tillar o'rganish";
+        const DIR_SCI  = "🔬 Tabiiy fanlar";
+        const DIR_IT   = "💻 Dasturlash va IT";
 
         const DIRS = [
-            { name:DIR_LANG, icon:"🌐", desc:"Ingliz, Rus, Nemis, Turk, Arab, Yapon, Xitoy, Koreys va boshqalar — 0 dan boshlash", grad:"linear-gradient(135deg,#0ea5e9,#6366f1)" },
+            { name:DIR_LANG, icon:"🌐", desc:"Ingliz, Rus, Nemis, Turk, Arab, Yapon, Xitoy, Koreys, Fransuz, Italyan", grad:"linear-gradient(135deg,#0ea5e9,#6366f1)" },
             { name:DIR_SCI,  icon:"🔬", desc:"Matematika, Fizika, Kimyo, Biologiya, Geografiya", grad:"linear-gradient(135deg,#10b981,#047857)" },
             { name:DIR_IT,   icon:"💻", desc:"Kompyuter savodxonligi, Sun'iy intellekt, Python, Web, Dizayn", grad:"linear-gradient(135deg,#8b5cf6,#4f46e5)" },
         ];
 
         const SEED = [
-        /* ---------- 🌐 TILLAR (10 kurs) ---------- */
+        /* 🌐 TILLAR — 10 kurs */
         { dir:DIR_LANG, title:"🇬🇧 Ingliz tili — 0 dan", cat:"🇬🇧 Ingliz", lang:"🇺🇿 O'zbek", emoji:"🇬🇧", color:"#0ea5e9", weeks:2,
-          desc:"Alifbodan sodda gaplashgacha — eng ommabop til",
-          lessons:L([["Alphabet and sounds",1,0],["Greetings & introductions",1,1],["Numbers 1–100",1,2],["Pronouns & verb 'to be'",1,3],
-                     ["Present Simple",2,0],["Everyday phrases",2,1],["Mini dialogues",2,2],["Final review",2,3]]),
-          quizzes:Q([["'Kitob' inglizcha?",["Book","Bock","Buuk","Bak"],0],
-                     ["I ___ a student.",["is","are","am","be"],2],
-                     ["She ___ to school every day.",["go","goes","going","gone"],1]]) },
-
+          desc:"Alifbodan sodda gaplashgacha",
+          lessons:L([["Alphabet and sounds",1,0],["Greetings & introductions",1,1],["Numbers 1-100",1,2],["Pronouns & verb to be",1,3],["Present Simple",2,0],["Everyday phrases",2,1],["Mini dialogues",2,2],["Final review",2,3]]),
+          quizzes:Q([["'Kitob' inglizcha?",["Book","Bock","Buuk","Bak"],0],["I ___ a student.",["is","are","am","be"],2],["She ___ to school every day.",["go","goes","going","gone"],1]]) },
         { dir:DIR_LANG, title:"🇷🇺 Rus tili — boshlang'ich", cat:"🇷🇺 Rus", lang:"🇺🇿 O'zbek", emoji:"🇷🇺", color:"#ef4444", weeks:2,
           desc:"Алфавитдан содда суҳбатгача",
-          lessons:L([["Алфавит и звуки",1,0],["Приветствие",1,1],["Числа",1,2],["Местоимения",1,3],
-                     ["Настоящее время",2,0],["Фразы дня",2,1],["Чтение",2,2],["Итоговый урок",2,3]]),
-          quizzes:Q([["'Salom' ruscha?",["Привет","Пока","Спасибо","Да"],0],
-                     ["'Rahmat' ruscha?",["Пожалуйста","Спасибо","Извините","Здравствуйте"],1],
-                     ["'Men' ruscha?",["я","ты","он","она"],0]]) },
-
+          lessons:L([["Алфавит и звуки",1,0],["Приветствие",1,1],["Числа",1,2],["Местоимения",1,3],["Настоящее время",2,0],["Фразы дня",2,1],["Чтение",2,2],["Итоговый урок",2,3]]),
+          quizzes:Q([["'Salom' ruscha?",["Привет","Пока","Спасибо","Да"],0],["'Rahmat' ruscha?",["Пожалуйста","Спасибо","Извините","Здравствуйте"],1],["'Men' ruscha?",["я","ты","он","она"],0]]) },
         { dir:DIR_LANG, title:"🇩🇪 Nemis tili — asoslar", cat:"🇩🇪 Nemis", lang:"🇺🇿 O'zbek", emoji:"🇩🇪", color:"#334155", weeks:2,
-          desc:"Das Alphabet'dan kundalik suhbatgacha",
-          lessons:L([["Das Alphabet",1,0],["Begrüßung (salomlashish)",1,1],["Zahlen (sonlar)",1,2],["Personalpronomen",1,3],
-                     ["Wichtige Verben",2,0],["Alltagsphrasen",2,1],["Lesen üben",2,2],["Abschluss",2,3]]),
-          quizzes:Q([["'Salom' nemischa?",["Hallo","Tschüss","Danke","Ja"],0],
-                     ["'Rahmat' nemischa?",["Bitte","Danke","Entschuldigung","Gut"],1],
-                     ["Ich ___ Student.",["ist","sind","bin","sein"],2]]) },
-
+          desc:"Alphabet'dan kundalik suhbatgacha",
+          lessons:L([["Das Alphabet",1,0],["Begrüßung",1,1],["Zahlen",1,2],["Personalpronomen",1,3],["Wichtige Verben",2,0],["Alltagsphrasen",2,1],["Lesen üben",2,2],["Abschluss",2,3]]),
+          quizzes:Q([["'Salom' nemischa?",["Hallo","Tschüss","Danke","Ja"],0],["'Rahmat' nemischa?",["Bitte","Danke","Entschuldigung","Gut"],1],["Ich ___ Student.",["ist","sind","bin","sein"],2]]) },
         { dir:DIR_LANG, title:"🇹🇷 Turk tili — 0 dan", cat:"🇹🇷 Turk", lang:"🇺🇿 O'zbek", emoji:"🇹🇷", color:"#dc2626", weeks:2,
-          desc:"Qardosh til — o'rganishi eng oson tillardan",
-          lessons:L([["Türk alfabesi",1,0],["Selamlaşma",1,1],["Sayılar",1,2],["Zamirler",1,3],
-                     ["Temel fiiller",2,0],["Günlük ifadeler",2,1],["Okuma pratiği",2,2],["Final",2,3]]),
-          quizzes:Q([["'Rahmat' turkcha?",["Merhaba","Teşekkürler","Evet","Hayır"],1],
-                     ["'Salom' turkcha?",["Merhaba","Güle güle","Tamam","Yok"],0],
-                     ["'Ha' turkcha?",["Hayır","Evet","Tamam","Belki"],1]]) },
-
+          desc:"Qardosh til — eng oson o'rganiladigan tillardan",
+          lessons:L([["Türk alfabesi",1,0],["Selamlaşma",1,1],["Sayılar",1,2],["Zamirler",1,3],["Temel fiiller",2,0],["Günlük ifadeler",2,1],["Okuma pratiği",2,2],["Final",2,3]]),
+          quizzes:Q([["'Rahmat' turkcha?",["Merhaba","Teşekkürler","Evet","Hayır"],1],["'Salom' turkcha?",["Merhaba","Güle güle","Tamam","Yok"],0],["'Ha' turkcha?",["Hayır","Evet","Tamam","Belki"],1]]) },
         { dir:DIR_LANG, title:"🇸🇦 Arab tili — asoslar", cat:"🇸🇦 Arab", lang:"🇺🇿 O'zbek", emoji:"🇸🇦", color:"#059669", weeks:2,
-          desc:"Alifbodan Qur'on o'qishga tayyorgarlikka qadar",
-          lessons:L([["الأبجدية (Alifbo)",1,0],["التحية (Salomlashish)",1,1],["الأرقام (Sonlar)",1,2],["الضمائر (Olmoshlar)",1,3],
-                     ["الأفعال (Fe'llar)",2,0],["عبارات يومية (Kundalik iboralar)",2,1],["القراءة (O'qish)",2,2],["المراجعة (Takrorlash)",2,3]]),
-          quizzes:Q([["Arab alifbosida nechta harf bor?",["26","28","30","32"],1],
-                     ["'Salom' arabcha?",["مرحبا","شكرا","نعم","لا"],0],
-                     ["'Kitob' arabcha?",["قلم","كتاب","باب","بيت"],1]]) },
-
+          desc:"Alifbodan o'qishga tayyorgarlikka qadar",
+          lessons:L([["الأبجدية (Alifbo)",1,0],["التحية (Salomlashish)",1,1],["الأرقام (Sonlar)",1,2],["الضمائر (Olmoshlar)",1,3],["الأفعال (Fe'llar)",2,0],["عبارات يومية (Kundalik iboralar)",2,1],["القراءة (O'qish)",2,2],["المراجعة (Takrorlash)",2,3]]),
+          quizzes:Q([["Arab alifbosida nechta harf bor?",["26","28","30","32"],1],["'Salom' arabcha?",["مرحبا","شكرا","نعم","لا"],0],["'Kitob' arabcha?",["قلم","كتاب","باب","بيت"],1]]) },
         { dir:DIR_LANG, title:"🇯🇵 Yapon tili — boshlash", cat:"🇯🇵 Yapon", lang:"🇺🇿 O'zbek", emoji:"🇯🇵", color:"#f43f5e", weeks:2,
           desc:"Hiraganadan birinchi suhbatgacha",
-          lessons:L([["Hiragana alifbosi",1,0],["Konnichiwa — salomlashish",1,1],["Kazu — sonlar",1,2],["Meishi — asosiy so'zlar",1,3],
-                     ["Dōshi — fe'llar",2,0],["Hibana — kundalik iboralar",2,1],["Katakana",2,2],["Fainaru",2,3]]),
-          quizzes:Q([["'Salom' yaponcha?",["Konnichiwa","Arigatou","Sayounara","Hai"],0],
-                     ["'Rahmat' yaponcha?",["Sumimasen","Arigatou","Ohayou","Iie"],1],
-                     ["Yaponiya yozuvi nechta tizimdan iborat?",["1","2","3","4"],2]]) },
-
+          lessons:L([["Hiragana alifbosi",1,0],["Konnichiwa — salomlashish",1,1],["Sonlar",1,2],["Asosiy so'zlar",1,3],["Fe'llar",2,0],["Kundalik iboralar",2,1],["Katakana",2,2],["Yakuniy dars",2,3]]),
+          quizzes:Q([["'Salom' yaponcha?",["Konnichiwa","Arigatou","Sayounara","Hai"],0],["'Rahmat' yaponcha?",["Sumimasen","Arigatou","Ohayou","Iie"],1],["Yapon yozuvi nechta tizimli?",["1","2","3","4"],2]]) },
         { dir:DIR_LANG, title:"🇨🇳 Xitoy tili — boshlash", cat:"🇨🇳 Xitoy", lang:"🇺🇿 O'zbek", emoji:"🇨🇳", color:"#e11d48", weeks:2,
           desc:"Pinyin va birinchi belgilar",
-          lessons:L([["Pinyin asoslari",1,0],["Nǐ hǎo — salomlashish",1,1],["Shùzì — sonlar",1,2],["Dàicí — olmoshlar",1,3],
-                     ["Dòngcí — fe'llar",2,0],["Rìcháng duǎnyǔ",2,1],["Belgilarni tanish",2,2],["Zui zhong",2,3]]),
-          quizzes:Q([["'Nǐ hǎo' nimani anglatadi?",["Rahmat","Salom","Xayr","Ha"],1],
-                     ["'Xièxie' nimani anglatadi?",["Salom","Rahmat","Kechirasiz","Yo'q"],1],
-                     ["Xitoy tilida ohanglar soni?",["2","3","4","5"],2]]) },
-
+          lessons:L([["Pinyin asoslari",1,0],["Nǐ hǎo — salomlashish",1,1],["Sonlar",1,2],["Olmoshlar",1,3],["Fe'llar",2,0],["Kundalik iboralar",2,1],["Belgilar bilan tanishuv",2,2],["Yakuniy dars",2,3]]),
+          quizzes:Q([["'Nǐ hǎo' nimani anglatadi?",["Rahmat","Salom","Xayr","Ha"],1],["'Xièxie' nimani anglatadi?",["Salom","Rahmat","Kechirasiz","Yo'q"],1],["Xitoy tilida ohanglar soni?",["2","3","4","5"],2]]) },
         { dir:DIR_LANG, title:"🇰🇷 Koreys tili — 0 dan", cat:"🇰🇷 Koreys", lang:"🇺🇿 O'zbek", emoji:"🇰🇷", color:"#7c3aed", weeks:2,
-          desc:"Hangul'dan K-dramaga tushunishgacha ilk qadamlar",
-          lessons:L([["Hangul alifbosi",1,0],["Annyeonghaseyo",1,1],["Sonlar",1,2],["Olmoshlar",1,3],
-                     ["Fe'llar",2,0],["Kundalik iboralar",2,1],["O'qish mashqi",2,2],["Yakuniy",2,3]]),
-          quizzes:Q([["'Salom' koreyscha?",["Annyeonghaseyo","Gamsahamnida","Annyeonghi gaseyo","Ne"],0],
-                     ["'Rahmat' koreyscha?",["Annyeong","Gamsahamnida","Jeogiyo","Aniyo"],1],
-                     ["Koreys alifbosi nomi?",["Kanji","Hangul","Hiragana","Hanja"],1]]) },
-
+          desc:"Hangul'dan birinchi suhbatgacha",
+          lessons:L([["Hangul alifbosi",1,0],["Annyeonghaseyo",1,1],["Sonlar",1,2],["Olmoshlar",1,3],["Fe'llar",2,0],["Kundalik iboralar",2,1],["O'qish mashqlari",2,2],["Yakuniy dars",2,3]]),
+          quizzes:Q([["'Salom' koreyscha?",["Annyeonghaseyo","Gamsahamnida","Jeogiyo","Aniyo"],0],["'Rahmat' koreyscha?",["Annyeong","Gamsahamnida","Ne","Aniyo"],1],["Koreys alifbosi nomi?",["Kanji","Hangul","Hiragana","Hanja"],1]]) },
         { dir:DIR_LANG, title:"🇫🇷 Fransuz tili — asoslar", cat:"🇫🇷 Fransuz", lang:"🇺🇿 O'zbek", emoji:"🇫🇷", color:"#2563eb", weeks:2,
           desc:"L'alphabet'dan birinchi suhbatgacha",
-          lessons:L([["L'alphabet",1,0],["Salutations",1,1],["Les nombres",1,2],["Les pronoms",1,3],
-                     ["Les verbes",2,0],["Phrases utiles",2,1],["Lecture",2,2],["Révision",2,3]]),
-          quizzes:Q([["'Salom' fransuzcha?",["Bonjour","Merci","Au revoir","Oui"],0],
-                     ["'Rahmat' fransuzcha?",["S'il vous plaît","Merci","Pardon","Non"],1],
-                     ["'Men' fransuzcha?",["tu","je","il","elle"],1]]) },
-
+          lessons:L([["L'alphabet",1,0],["Salutations",1,1],["Les nombres",1,2],["Les pronoms",1,3],["Les verbes",2,0],["Phrases utiles",2,1],["Lecture",2,2],["Révision",2,3]]),
+          quizzes:Q([["'Salom' fransuzcha?",["Bonjour","Merci","Au revoir","Oui"],0],["'Rahmat' fransuzcha?",["S'il vous plaît","Merci","Pardon","Non"],1],["'Men' fransuzcha?",["tu","je","il","elle"],1]]) },
         { dir:DIR_LANG, title:"🇮🇹 Italyan tili — boshlash", cat:"🇮🇹 Italyan", lang:"🇺🇿 O'zbek", emoji:"🇮🇹", color:"#16a34a", weeks:2,
-          desc:"L'alfabeto'dan Ciao'ga — eng qiziqarli til!",
-          lessons:L([["L'alfabeto",1,0],["Saluti (Ciao!)",1,1],["I numeri",1,2],["I pronomi",1,3],
-                     ["I verbi",2,0],["Frasi utili",2,1],["Lettura",2,2],["Finale",2,3]]),
-          quizzes:Q([["'Ciao' nimani anglatadi?",["Salom/Xayr","Rahmat","Ha","Yo'q"],0],
-                     ["'Grazie' nimani anglatadi?",["Kechirasiz","Rahmat","Iltimos","Salom"],1],
-                     ["'Men' italyancha?",["tu","io","lui","lei"],1]]) },
+          desc:"Ciao'dan boshlab eng qiziqarli til!",
+          lessons:L([["L'alfabeto",1,0],["Saluti (Ciao!)",1,1],["I numeri",1,2],["I pronomi",1,3],["I verbi",2,0],["Frasi utili",2,1],["Lettura",2,2],["Finale",2,3]]),
+          quizzes:Q([["'Ciao' nimani anglatadi?",["Salom/Xayr","Rahmat","Ha","Yo'q"],0],["'Grazie' nimani anglatadi?",["Kechirasiz","Rahmat","Iltimos","Salom"],1],["'Men' italyancha?",["tu","io","lui","lei"],1]]) },
 
-        /* ---------- 🔬 TABIIY FANLAR (5 kurs) ---------- */
+        /* 🔬 TABIIY FANLAR — 5 kurs */
         { dir:DIR_SCI, title:"📐 Matematika — 7-sinf", cat:"📐 Matematika", lang:"🇺🇿 O'zbek", emoji:"📐", color:"#6366f1", weeks:2,
-          desc:"Darajalar, formulalar, funksiyalar — bosqichma-bosqich",
-          lessons:L([["Darajalar va ildizlar",1,0],["Birhadlar",1,1],["Ko'phadlar",1,2],["Qisqa ko'paytirish",1,3],
-                     ["Tenglamalar",2,0],["Funksiya tushunchasi",2,1],["Grafiklar",2,2],["Yakuniy takrorlash",2,3]]),
-          quizzes:Q([["2³ nechaga teng?",["6","8","9","5"],1],
-                     ["(a+b)² = ?",["a²+b²","a²+2ab+b²","2a+2b","a²-b²"],1],
-                     ["√16 = ?",["2","4","8","16"],1]]) },
-
+          desc:"Darajalar, formulalar, funksiyalar",
+          lessons:L([["Darajalar va ildizlar",1,0],["Birhadlar",1,1],["Ko'phadlar",1,2],["Qisqa ko'paytirish",1,3],["Tenglamalar",2,0],["Funksiya tushunchasi",2,1],["Grafiklar",2,2],["Yakuniy takrorlash",2,3]]),
+          quizzes:Q([["2³ nechaga teng?",["6","8","9","5"],1],["(a+b)² = ?",["a²+b²","a²+2ab+b²","2a+2b","a²-b²"],1],["√16 = ?",["2","4","8","16"],1]]) },
         { dir:DIR_SCI, title:"🧪 Fizika — asoslar", cat:"🧪 Fizika", lang:"🇺🇿 O'zbek", emoji:"🧪", color:"#f59e0b", weeks:2,
-          desc:"Harakat, kuch, energiya — eksperimentlar bilan",
-          lessons:L([["Fizika nima o'rganadi?",1,0],["Mexanik harakat",1,1],["Tezlik",1,2],["Kuch tushunchasi",1,3],
-                     ["Nyuton qonunlari",2,0],["Ish va quvvat",2,1],["Energiya turlari",2,2],["Yakuniy testga tayyorgarlik",2,3]]),
-          quizzes:Q([["Tezlik birligi?",["kg","m/s","N","J"],1],
-                     ["Nyuton qonunlari nechta?",["2","3","4","5"],1],
-                     ["Quvvat birligi?",["Vatt","Nyuton","Joul","Paskal"],0]]) },
-
+          desc:"Harakat, kuch, energiya",
+          lessons:L([["Fizika nima o'rganadi?",1,0],["Mexanik harakat",1,1],["Tezlik",1,2],["Kuch tushunchasi",1,3],["Nyuton qonunlari",2,0],["Ish va quvvat",2,1],["Energiya turlari",2,2],["Yakuniy takrorlash",2,3]]),
+          quizzes:Q([["Tezlik birligi?",["kg","m/s","N","J"],1],["Nyuton qonunlari nechta?",["2","3","4","5"],1],["Quvvat birligi?",["Vatt","Nyuton","Joul","Paskal"],0]]) },
         { dir:DIR_SCI, title:"⚗️ Kimyo — boshlang'ich", cat:"⚗️ Kimyo", lang:"🇺🇿 O'zbek", emoji:"⚗️", color:"#8b5cf6", weeks:2,
           desc:"Atomlar, moddalar, reaksiyalar",
-          lessons:L([["Atom tuzilishi",1,0],["Kimyoviy belgilar",1,1],["Valentlik",1,2],["Reaksiya tenglamalari",1,3],
-                     ["Kislotalar",2,0],["Asoslar",2,1],["Tuzlar",2,2],["Yakuniy takrorlash",2,3]]),
-          quizzes:Q([["H₂O nimasi?",["Kislorod","Suv","Vodorod","Tuz"],1],
-                     ["Eng yengil atom?",["Geliy","Vodorod","Kislorod","Uglerod"],1],
-                     ["NaCl nimasi?",["Suv","Tuz","Shakar","Kislota"],1]]) },
-
+          lessons:L([["Atom tuzilishi",1,0],["Kimyoviy belgilar",1,1],["Valentlik",1,2],["Reaksiya tenglamalari",1,3],["Kislotalar",2,0],["Asoslar",2,1],["Tuzlar",2,2],["Yakuniy takrorlash",2,3]]),
+          quizzes:Q([["H₂O nimasi?",["Kislorod","Suv","Vodorod","Tuz"],1],["Eng yengil atom?",["Geliy","Vodorod","Kislorod","Uglerod"],1],["NaCl nimasi?",["Suv","Tuz","Shakar","Kislota"],1]]) },
         { dir:DIR_SCI, title:"🧬 Biologiya — asoslar", cat:"🧬 Biologiya", lang:"🇺🇿 O'zbek", emoji:"🧬", color:"#14b8a6", weeks:2,
           desc:"Hujayradan inson organizmigacha",
-          lessons:L([["Hujayra tuzilishi",1,0],["Hujayra bo'linishi",1,1],["O'simliklar",1,2],["Fotosintez",1,3],
-                     ["Hayvonlar sinflari",2,0],["Inson organlari",2,1],["Qon aylanishi",2,2],["Yakuniy takrorlash",2,3]]),
-          quizzes:Q([["Fotosintez qayerda kechadi?",["Ildiz","Barg","Poya","Gul"],1],
-                     ["Inson yuragi necha kamerali?",["2","3","4","5"],2],
-                     ["Eng kichik tirik birlik?",["To'qima","Hujayra","Organ","Organizm"],1]]) },
-
+          lessons:L([["Hujayra tuzilishi",1,0],["Hujayra bo'linishi",1,1],["O'simliklar",1,2],["Fotosintez",1,3],["Hayvonlar sinflari",2,0],["Inson organlari",2,1],["Qon aylanishi",2,2],["Yakuniy takrorlash",2,3]]),
+          quizzes:Q([["Fotosintez qayerda kechadi?",["Ildiz","Barg","Poya","Gul"],1],["Inson yuragi necha kamerali?",["2","3","4","5"],2],["Eng kichik tirik birlik?",["To'qima","Hujayra","Organ","Organizm"],1]]) },
         { dir:DIR_SCI, title:"🗺 Geografiya — asoslar", cat:"🗺 Geografiya", lang:"🇺🇿 O'zbek", emoji:"🗺", color:"#22c55e", weeks:2,
-          desc:"Qit'alar, okeanlar, O'zbekiston tabiati",
-          lessons:L([["Yer shari",1,0],["Qit'alar",1,1],["Okeanlar",1,2],["Iqlim turlari",1,3],
-                     ["O'zbekiston tabiati",2,0],["Daryolar",2,1],["Xarita bilan ishlash",2,2],["Yakuniy takrorlash",2,3]]),
-          quizzes:Q([["Eng katta okean?",["Atlantika","Hind","Tinch","Shimoliy Muz"],2],
-                     ["O'zbekistonning eng uzun daryosi?",["Zarafshon","Amudaryo","Sirdaryo","Chirchiq"],2],
-                     ["Qit'alar soni?",["5","6","7","8"],2]]) },
+          desc:"Qit'alar, okeanlar, O'zbekiston",
+          lessons:L([["Yer shari",1,0],["Qit'alar",1,1],["Okeanlar",1,2],["Iqlim turlari",1,3],["O'zbekiston tabiati",2,0],["Daryolar",2,1],["Xarita bilan ishlash",2,2],["Yakuniy takrorlash",2,3]]),
+          quizzes:Q([["Eng katta okean?",["Atlantika","Hind","Tinch","Shimoliy Muz"],2],["O'zbekistonning eng uzun daryosi?",["Zarafshon","Amudaryo","Sirdaryo","Chirchiq"],2],["Qit'alar soni?",["5","6","7","8"],2]]) },
 
-        /* ---------- 💻 DASTURLASH VA IT (5 kurs) ---------- */
+        /* 💻 DASTURLASH VA IT — 5 kurs */
         { dir:DIR_IT, title:"🖥 Kompyuter savodxonligi", cat:"💻 IT asoslari", lang:"🇺🇿 O'zbek", emoji:"🖥", color:"#0ea5e9", weeks:2,
-          desc:"Noldan: kompyuter, Windows, Word, Excel, internet",
-          lessons:L([["Kompyuter tuzilishi",1,0],["Windows bilan ishlash",1,1],["Fayllar va papkalar",1,2],["Klaviatura mahorati",1,3],
-                     ["Word asoslari",2,0],["Excel asoslari",2,1],["Internet va email",2,2],["Kiberxavfsizlik asoslari",2,3]]),
-          quizzes:Q([["Faylni nusxalash tugmasi?",["Ctrl+V","Ctrl+C","Ctrl+X","Ctrl+Z"],1],
-                     ["Excel nimada ishlaydi?",["Matn","Jadval","Rasm","Video"],1],
-                     ["Parol qanday bo'lishi kerak?",["1234","Ismingiz","Murakkab aralash","Tug'ilgan kun"],2]]) },
-
-        { dir:DIR_IT, title:"🤖 Sun'iy intellekt (AI) — kelajak kasbi", cat:"🤖 AI", lang:"🇺🇿 O'zbek", emoji:"🤖", color:"#e11d48", weeks:2,
-          desc:"ChatGPT, rasmlar AI, prompt yozish — zamonaviy ko'nikmalar!",
-          lessons:L([["AI nima va qanday ishlaydi?",1,0],["ChatGPT bilan tanishuv",1,1],["Prompt yozish san'ati",1,2],["AI tarjima va matnlar",1,3],
-                     ["Rasm yasovchi AI'lar",2,0],["O'qishda AI yordami",2,1],["AI va kelajak kasblari",2,2],["Yakuniy loyiha: AI yordamchisi",2,3]]),
-          quizzes:Q([["ChatGPT nima?",["O'yin","AI chatbot","Ijtimoiy tarmoq","Brauzer"],1],
-                     ["Prompt nimasi?",["Parol","AI'ga yozilgan buyruq","Fayl","Sayt"],1],
-                     ["Qaysi AI rasm yasaydi?",["Midjourney","Word","Excel","Chrome"],0]]) },
-
+          desc:"Noldan: kompyuter, Word, Excel, internet",
+          lessons:L([["Kompyuter tuzilishi",1,0],["Windows bilan ishlash",1,1],["Fayllar va papkalar",1,2],["Klaviatura mahorati",1,3],["Word asoslari",2,0],["Excel asoslari",2,1],["Internet va email",2,2],["Kiberxavfsizlik",2,3]]),
+          quizzes:Q([["Nusxa olish tugmasi?",["Ctrl+V","Ctrl+C","Ctrl+X","Ctrl+Z"],1],["Excel nimada ishlaydi?",["Matn","Jadval","Rasm","Video"],1],["Yaxshi parol qanday?",["1234","Ismingiz","Murakkab aralash","1111"],2]]) },
+        { dir:DIR_IT, title:"🤖 Sun'iy intellekt (AI)", cat:"🤖 AI", lang:"🇺🇿 O'zbek", emoji:"🤖", color:"#e11d48", weeks:2,
+          desc:"ChatGPT, prompt yozish, AI rasmlar — kelajak kasbi!",
+          lessons:L([["AI nima va qanday ishlaydi?",1,0],["ChatGPT bilan tanishuv",1,1],["Prompt yozish san'ati",1,2],["AI tarjima va matnlar",1,3],["Rasm yasovchi AI'lar",2,0],["O'qishda AI yordami",2,1],["AI va kelajak kasblari",2,2],["Yakuniy loyiha",2,3]]),
+          quizzes:Q([["ChatGPT nima?",["O'yin","AI chatbot","Ijtimoiy tarmoq","Brauzer"],1],["Prompt nimasi?",["Parol","AI'ga yozilgan buyruq","Fayl","Sayt"],1],["Qaysi AI rasm yasaydi?",["Midjourney","Word","Excel","Chrome"],0]]) },
         { dir:DIR_IT, title:"🐍 Python dasturlash — 0 dan", cat:"🐍 Python", lang:"🇺🇿 O'zbek", emoji:"🐍", color:"#16a34a", weeks:2,
-          desc:"Eng oson va eng talab qilinadigan dasturlash tili",
-          lessons:L([["Python o'rnatish va IDLE",1,0],["print() va o'zgaruvchilar",1,1],["Ma'lumot turlari",1,2],["Shartlar (if/else)",1,3],
-                     ["For tsikli",2,0],["Funksiyalar",2,1],["Ro'yxatlar (list)",2,2],["Loyiha: Kalkulyator",2,3]]),
-          quizzes:Q([["print('Salom') nima qiladi?",["O'chiradi","Ekranga chiqaradi","Hisoblaydi","Saqlaydi"],1],
-                     ["if/else nimasi?",["Tsikl","Shart","Funksiya","Ro'yxat"],1],
-                     ["for i in range(3) necha marta?",["2","3","4","1"],1]]) },
-
+          desc:"Eng oson va eng talab qilinadigan til",
+          lessons:L([["Python o'rnatish",1,0],["print() va o'zgaruvchilar",1,1],["Ma'lumot turlari",1,2],["Shartlar (if/else)",1,3],["For tsikli",2,0],["Funksiyalar",2,1],["Ro'yxatlar",2,2],["Loyiha: Kalkulyator",2,3]]),
+          quizzes:Q([["print('Salom') nima qiladi?",["O'chiradi","Ekranga chiqaradi","Hisoblaydi","Saqlaydi"],1],["if/else nimasi?",["Tsikl","Shart","Funksiya","Ro'yxat"],1],["range(3) necha marta?",["2","3","4","1"],1]]) },
         { dir:DIR_IT, title:"🌐 Web dasturlash — HTML/CSS", cat:"🌐 Web", lang:"🇺🇿 O'zbek", emoji:"🌐", color:"#f97316", weeks:2,
           desc:"O'z birinchi saytingizni yasang!",
-          lessons:L([["Internet qanday ishlaydi?",1,0],["HTML asoslari",1,1],["Matn va havolalar",1,2],["Rasm va jadvallar",1,3],
-                     ["CSS kirish",2,0],["Rang va shriftlar",2,1],["Sahifani bezash",2,2],["Loyiha: Birinchi sayt",2,3]]),
-          quizzes:Q([["HTML nimada yoziladi?",["<tag>","{funksiya}","#teng","@dir"],0],
-                     ["CSS nima uchun?",["Mantiq","Bezak/dizayn","Baza","Server"],1],
-                     ["Sayt sarlavhasi tegi?",["<head>","<title>","<h1>","<p>"],2]]) },
-
+          lessons:L([["Internet qanday ishlaydi?",1,0],["HTML asoslari",1,1],["Matn va havolalar",1,2],["Rasm va jadvallar",1,3],["CSS kirish",2,0],["Rang va shriftlar",2,1],["Sahifani bezash",2,2],["Loyiha: Birinchi sayt",2,3]]),
+          quizzes:Q([["HTML qanday yoziladi?",["<tag>","{funksiya}","#teng","@dir"],0],["CSS nima uchun?",["Mantiq","Dizayn","Baza","Server"],1],["Sarlavha tegi?",["<head>","<title>","<h1>","<p>"],2]]) },
         { dir:DIR_IT, title:"🎨 Grafik dizayn — Canva", cat:"🎨 Dizayn", lang:"🇺🇿 O'zbek", emoji:"🎨", color:"#ec4899", weeks:2,
           desc:"Logo, post, prezentatsiya — pul topadigan ko'nikma",
-          lessons:L([["Dizayn nima va qayerda kerak?",1,0],["Ranglar nazariyasi",1,1],["Shriftlar ilmi",1,2],["Canva bilan tanishuv",1,3],
-                     ["Logo yasash",2,0],["Instagram postlari",2,1],["Prezentatsiya yasash",2,2],["Loyiha: Brend uslubi",2,3]]),
-          quizzes:Q([["Yaxshi kontrast nimaga kerak?",["Chiroyli ko'rinish","O'qish osonligi","Tezlik","Hajm"],1],
-                     ["Canva nima?",["Dizayn vositasi","Brauzer","O'yin","Chat"],0],
-                     ["Logo qayerda ishlatilmaydi?",["Vizitka","Sayt","Suv","Chek"],2]]) },
+          lessons:L([["Dizayn nima uchun kerak?",1,0],["Ranglar nazariyasi",1,1],["Shriftlar ilmi",1,2],["Canva bilan tanishuv",1,3],["Logo yasash",2,0],["Instagram postlari",2,1],["Prezentatsiya",2,2],["Loyiha: Brend uslubi",2,3]]),
+          quizzes:Q([["Kontrast nimaga kerak?",["Chiroylik","O'qish osonligi","Tezlik","Hajm"],1],["Canva nima?",["Dizayn vositasi","Brauzer","O'yin","Chat"],0],["Logo qayerda kerak emas?",["Vizitka","Sayt","Suv","Chek"],2]]) },
         ];
 
-        function seedInstall(){
+        /* ⭐ AVTOMATIK YUKLASH: kurslar bo'lmasa — o'zi yuklaydi! */
+        function autoSeed(){
             const list = coursesArr();
-            let q = 0;
-            SEED.forEach(s => {
-                if (!list.some(c => c.title === s.title)) { window.courses.push({ ...s, id: uid(), price: 0 }); q++; }
-            });
-            if (q) {
-                window.saveCourses(); renderAdmin(); renderCatalog();
-                document.getElementById('seed-status').innerHTML = `<span class="chip" style="color:var(--success)">✅ ${q} kurs yuklandi!</span>`;
-                toast(q + " ta kurs qo'shildi! Endi narxlarni belgilang va videolarni joylang 🎉");
-            } else {
-                document.getElementById('seed-status').innerHTML = `<span class="chip">Allaqachon yuklangan 😊</span>`;
-            }
+            const withDir = list.filter(c => c.dir);
+            if (withDir.length > 0) return; // allaqachon to'liq platforma bor
+            window.courses = SEED.map(s => ({ ...s, id: uid(), price: 0 }));
+            window.saveCourses();
+            if (typeof toast === 'function') toast("✅ 20 ta to'liq kurs avtomatik yuklandi! 🎉");
+        }
+        function forceSeed(){
+            window.courses = SEED.map(s => ({ ...s, id: uid(), price: 0 }));
+            window.saveCourses(); renderAdmin(); renderCatalog();
+            toast("20 ta kurs qayta yuklandi ✅ Narxlarni belgilang!");
         }
 
         /* ---------- ASOSIY ---------- */
         let currentTab = 'kurslar';
-        let catalogDir = null; // hozirgi yo'nalish ko'rinishi
+        let catalogDir = null;
         const esc = s => String(s ?? '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
         const fmt = n => (+n||0).toLocaleString();
         const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -492,7 +406,6 @@
             if (a) a.innerText = map[window.cloudStatus] || '';
         }
 
-        /* ---------- AUTH ---------- */
         function toggleLogin(){
             const a = document.getElementById('login-form'), b = document.getElementById('login-exist');
             const s = a.style.display === 'none';
@@ -507,7 +420,7 @@
             if (usersObj()[phone]) return toast("Bu raqam bor — «Akkauntim bor» orqali kiring!", 'err');
             usersObj()[phone] = { name, pass, role:'student', joined:new Date().toISOString().slice(0,10), bought:{}, progress:{}, quizResults:{} };
             window.saveUsers(); enterApp(phone);
-            toast("Xush kelibsiz, " + name + "! Barcha yo'nalishlar sizga ochiq 🎉");
+            toast("Xush kelibsiz, " + name + "! 20 ta kurs sizga ochiq 🎉");
         }
         function login(){
             const phone = document.getElementById('log-phone').value.replace(/[^0-9]/g,'');
@@ -557,20 +470,19 @@
             updateSync();
         }
 
-        /* ---------- KATALOG: YO'NALISHLAR → KURSLAR ---------- */
+        /* ---------- KATALOG ---------- */
         function renderCatalog(){
             const area = document.getElementById('catalog-area');
             const list = coursesArr();
 
             if (!list.length) {
                 area.innerHTML = `<div class="hero"><h2>🎓 ${esc(window.config.academyName)}</h2>
-                    <p>Tillar, tabiiy fanlar va dasturlash — hammasi bitta joyda!</p></div>
-                    <div class="chip">Hozircha kurslar yuklanmagan. Admin: «⚙️ Boshqaruv» → «📥 Hammasini yuklash»</div>`;
+                    <p>Kurslar yuklanmoqda...</p></div>`;
+                autoSeed();
                 return;
             }
 
             if (!catalogDir) {
-                // YO'NALISHLAR KO'RINISHI
                 const dirCards = DIRS.map(d => {
                     const cnt = list.filter(c=>c.dir===d.name).length;
                     return `<div class="dir-card" style="background:${d.grad}" onclick="catalogDir='${esc(d.name)}'; renderCatalog()">
@@ -580,19 +492,18 @@
                         <p>${esc(d.desc)}</p>
                     </div>`;
                 }).join('');
-                const myCount = myCoursesList().length;
+                const mine = myCoursesList();
                 area.innerHTML = `
                     <div class="hero"><h2>🎓 Xush kelibsiz, ${esc(window.currentUser.name)}!</h2>
-                    <p>Yo'nalishni tanlang va o'qishni boshlang — barcha kurslar har kunga rejalashtirilgan!</p></div>
+                    <p>Yo'nalishni tanlang va o'qishni boshlang — har kurs haftalab rejalashtirilgan!</p></div>
                     <div class="section-title">📂 Yo'nalishlar</div>
                     <div class="grid">${dirCards}</div>
-                    ${myCount?`<div class="section-title">🔥 Davom etish</div>
-                    <div class="grid">${myCoursesList().map(c=>miniCard(c)).join('')}</div>`:''}`;
+                    ${mine.length?`<div class="section-title">🔥 Davom etish</div>
+                    <div class="grid">${mine.map(c=>miniCard(c)).join('')}</div>`:''}`;
                 return;
             }
 
-            // TANLANGAN YO'NALISHDAGI KURSLAR
-            const d = DIRS.find(x=>x.name===catalogDir) || { icon:"📚", grad:"linear-gradient(135deg,#6366f1,#8b5cf6)" };
+            const d = DIRS.find(x=>x.name===catalogDir) || { icon:"📚", grad:"linear-gradient(135deg,#6366f1,#8b5cf6)", desc:"" };
             const inDir = list.filter(c=>c.dir===catalogDir);
             area.innerHTML = `
                 <span class="breadcrumb" onclick="catalogDir=null; renderCatalog()">⬅️ Barcha yo'nalishlar</span>
@@ -614,7 +525,6 @@
         }
         function courseCard(c){
             const bought = isBought(c.id);
-            const ready = (c.lessons||[]).filter(l=>l.video).length;
             return `<div class="course-card" onclick="openCourse('${c.id}')">
                 <div class="course-cover" style="background:${c.color||'#6366f1'}">
                     <span class="cat-badge">${esc(c.cat||'')}</span>${c.emoji||'📚'}
@@ -683,9 +593,11 @@
                         html += `<div class="lesson-row ${done?'done':''}" style="margin-top:8px; background:var(--card);">
                             <div><b>${esc(l.title)}</b>
                                 ${l.day?`<span class="chip" style="font-size:10px; padding:2px 8px; margin-left:6px;">${esc(l.day)}</span>`:''}
-                                ${!hasVideo?`<span class="chip" style="font-size:10px; padding:2px 8px; margin-left:4px;">⏳ video tez orada</span>`:''}
                             </div>
-                            ${hasVideo?`<button class="btn ${done?'btn-outline':'btn-primary'}" onclick="watchLesson('${cid}',${l._i})">${done?'✅ Qayta ko\'rish':'▶️ Ko\'rish'}</button>`:''}
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-outline" style="padding:8px 10px; font-size:12px;" onclick="ytStudent('${js(l.title)}')" title="YouTube'da ko'rish">🔍</button>
+                                ${hasVideo?`<button class="btn ${done?'btn-outline':'btn-primary'}" style="padding:8px 12px; font-size:12px;" onclick="watchLesson('${cid}',${l._i})">${done?'✅ Ko\'rish':'▶️ Ko\'rish'}</button>`:''}
+                            </div>
                         </div>`;
                     });
                     html += '</div>';
@@ -705,6 +617,10 @@
                   m3 = s.match(/embed\/([\w-]+)/), m4 = s.match(/shorts\/([\w-]+)/);
             return m1?m1[1] : m2?m2[1] : m3?m3[1] : m4?m4[1] : (/^[\w-]{11}$/.test(s) ? s : '');
         }
+        function ytStudent(title){
+            const q = encodeURIComponent(title + ' dars o\'zbekcha');
+            window.open('https://www.youtube.com/results?search_query=' + q, '_blank');
+        }
         function watchLesson(cid, idx){
             const c = coursesArr().find(x=>x.id===cid); if (!c) return;
             const l = c.lessons[idx];
@@ -712,7 +628,7 @@
             let html = `<h2 style="margin-top:0;">🎬 ${esc(l.title)}</h2>
                 <span class="chip" style="display:inline-block; margin-bottom:12px;">📅 ${l.week||1}-hafta ${l.day?'| '+esc(l.day):''}</span>`;
             if (vid) html += `<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe></div>`;
-            else html += '<div class="chip" style="margin-bottom:12px;">⚠️ Video havolasi noto\'g\'ri</div>';
+            else html += `<div class="chip" style="margin-bottom:12px;">Bu dars uchun hali video qo'yilmagan. 🔍 tugmasi bilan YouTube'dan topib ko'rishingiz mumkin!</div>`;
             html += `<button class="btn btn-success" onclick="markDone('${cid}',${idx})">✅ Darsni tugalladim</button>
                      <button class="btn btn-outline" onclick="openCourse('${cid}')" style="margin-left:8px;">⬅️ Dastur</button>`;
             document.getElementById('course-detail').innerHTML = html;
@@ -817,7 +733,7 @@
         /* ---------- TO'LOV ---------- */
         function payCourse(cid){ if (!window.currentUser?.data) return;
             const c = coursesArr().find(x=>x.id===cid);
-            const check = prompt(`💰 Narx: ${fmt(c.price)} so'm\n💳 Karta: ${window.config.payCard||'—'}\n\nTo'lov qilgach, chek raqamini kiriting (admin tasdiqlaydi):`);
+            const check = prompt(`💰 Narx: ${fmt(c.price)} so'm\n💳 Karta: ${window.config.payCard||'—'}\n\nTo'lov qilgach, chek raqamini kiriting:`);
             if (!check) return;
             const u = window.currentUser.data;
             if (!u.bought) u.bought = {};
@@ -868,14 +784,14 @@
             toast("Saqlandi ✅");
         }
 
-        /* ---------- VIDEOLAR ---------- */
+        /* ---------- VIDEOLAR (ADMIN) ---------- */
         function renderDarslarTab(){
             renderTeacherSelects();
             renderLessonsAdmin();
         }
         function renderTeacherSelects(){
             const list = coursesArr();
-            const opts = list.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('') || '<option value="">Avval paketni yuklang</option>';
+            const opts = list.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('');
             const el = document.getElementById('lesson-course');
             if (el) { const cur = el.value; el.innerHTML = opts; if (cur) el.value = cur; }
         }
@@ -883,7 +799,7 @@
             const cid = document.getElementById('lesson-course').value;
             const c = coursesArr().find(x=>x.id===cid);
             const el = document.getElementById('lessons-admin-list');
-            if (!c) { el.innerHTML = '<div class="chip">Avval «⚙️ Boshqaruv»da paketni yuklang</div>'; return; }
+            if (!c) { el.innerHTML = '<div class="chip">Kurs topilmadi</div>'; return; }
             const lessons = (c.lessons||[]);
             el.innerHTML = lessons.length ?
                 `<div class="card block admin-only" style="max-width:100%;">
@@ -897,26 +813,24 @@
                         </div>
                         <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; flex:2; min-width:230px;">
                             <input id="vid_${i}" value="${esc(l.video||'')}" placeholder="YouTube link..." style="margin:0; flex:1; min-width:140px; padding:8px;">
-                            <button class="btn btn-outline" style="padding:8px 10px; font-size:12px;" onclick="ytSearch('${cid}',${i})">🔍</button>
+                            <button class="btn btn-outline" style="padding:8px 10px; font-size:12px;" onclick="ytSearchAdmin('${cid}',${i})">🔍</button>
                             <button class="btn ${ok?'btn-success':'btn-primary'}" style="padding:8px 12px; font-size:12px;" onclick="saveVideo('${cid}',${i})">💾</button>
                         </div>
                     </div>`;
                 }).join('') + '</div>'
                 : '<div class="chip">Dars yo\'q</div>';
         }
-        function ytSearch(cid, i){
+        function ytSearchAdmin(cid, i){
             const c = coursesArr().find(x=>x.id===cid); if (!c) return;
-            const l = c.lessons[i];
-            const q = encodeURIComponent(l.title + ' ' + (c.cat||'').replace(/[^\w\u0400-\u04FF ]/g,'') + ' dars o\'zbek tilida');
+            const q = encodeURIComponent(c.lessons[i].title + ' dars o\'zbekcha');
             window.open('https://www.youtube.com/results?search_query=' + q, '_blank');
-            toast("YouTube ochildi — videoni tanlab, linkini yopishtiring 🔍");
         }
         function saveVideo(cid, i){
             const c = coursesArr().find(x=>x.id===cid); if (!c) return;
             const v = document.getElementById('vid_'+i).value.trim();
-            if (v && !getVideoId(v)) return toast("Link formatini tekshiring! (youtu.be/... yoki watch?v=...)", 'err');
+            if (v && !getVideoId(v)) return toast("Link formatini tekshiring!", 'err');
             c.lessons[i].video = v;
-            window.saveCourses(); renderLessonsAdmin(); renderCatalog();
+            window.saveCourses(); renderLessonsAdmin();
             toast(v ? "Video saqlandi ✅" : "Video o'chirildi");
         }
 
@@ -969,6 +883,7 @@
             }).join('');
         }
 
+        const js = s => String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
         function toggleDark(){
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('lmsDark', document.body.classList.contains('dark-mode')?'1':'0');
@@ -990,6 +905,9 @@
                 }
             }, 800);
         }
+
+        /* ⭐ AGAR 1.5 SONIYADA KURSLAR BO'LMASSA — O'ZI YUKLAYDI */
+        setTimeout(autoSeed, 1500);
     </script>
 </body>
 </html>
